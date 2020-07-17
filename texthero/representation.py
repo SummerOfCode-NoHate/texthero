@@ -52,6 +52,10 @@ def representation_series_to_flat_series(
         features that are not present in one document but present in others
         are filled with fill_missing_with. See example below.
 
+    Returns
+    -------
+    Panda Series
+
 
     Examples
     --------
@@ -104,9 +108,9 @@ Vectorization
 @handle_nans
 def term_frequency(
     s: pd.Series, max_features: Optional[int] = None, return_feature_names=False
-):
+)-> pd.Series:
     """
-    Represent a text-based Pandas Series using term_frequency.
+    Represents a text-based Pandas Series using term_frequency.
 
     The input Series should already be tokenized. If not, it will
     be tokenized before term_frequency is calculated.
@@ -119,6 +123,9 @@ def term_frequency(
     return_features_names : Boolean, False by Default
         If True, return a tuple (*term_frequency_series*, *features_names*)
 
+    Returns
+    -------
+    Pandas Series
 
     Examples
     --------
@@ -206,6 +213,10 @@ def tfidf(
     return_feature_names: Boolean, optional, default to False
         Whether to return the feature (i.e. word) names with the output.
 
+    Returns
+    -------
+    Panda Series Sparse
+
 
     Examples
     --------
@@ -266,11 +277,11 @@ Dimensionality reduction
 
 
 @handle_nans
-def pca(s, n_components=2):
+def pca(s, n_components=2) -> pd.Series:
     """
     Perform principal component analysis on the given Pandas Series.
 
-    In general, *pca* should be called after the text has already been represented.
+    In general, *pca* should be called after the text has already been represented to a matrix form.
 
     Parameters
     ----------
@@ -278,11 +289,19 @@ def pca(s, n_components=2):
     n_components : Int. Default is 2.
         Number of components to keep. If n_components is not set or None, all components are kept.
 
+    Returns
+    -------
+    Pandas Series
+
     Examples
     --------
     >>> import texthero as hero
     >>> import pandas as pd
-    >>> s = pd.Series(["Sentence one", "Sentence two"])
+    >>> s = pd.Series([[5.0, 4.4],[3,4]])
+    >>> hero.representation.pca(s)
+    0    [-1.0198039027185566, 0.0]
+    1      [1.019803902718557, 0.0]
+    dtype: object
  
     """
     pca = PCA(n_components=n_components)
@@ -290,11 +309,30 @@ def pca(s, n_components=2):
 
 
 @handle_nans
-def nmf(s, n_components=2):
+def nmf(s, n_components=2) -> pd.Series:
     """
-    Perform non-negative matrix factorization.
+    Performs non-negative matrix factorization. More detailed informations can be found here:
+    https://en.wikipedia.org/wiki/Non-negative_matrix_factorization
 
-    
+    Parameters
+    ----------
+    s : Pandas Series
+    n_components : Int. Default is 2.
+        Number of components to keep. If n_components is not set or None, all components are kept.
+
+    Returns
+    -------
+    Pandas Series
+
+    Examples
+    --------
+    >>> import texthero as hero
+    >>> import pandas as pd
+    >>> s = pd.Series([[5.0, 4.4],[3,4]])
+    >>> hero.representation.nmf(s)
+    0    [1.6444757816978475, 1.0011413386279544]
+    1     [0.651671530801262, 1.1019012510446033]
+    dtype: object
     """
     nmf = NMF(n_components=n_components, init="random", random_state=0)
     return pd.Series(nmf.fit_transform(list(s)).tolist(), index=s.index)
@@ -317,9 +355,10 @@ def tsne(
     method="barnes_hut",
     angle=0.5,
     n_jobs=-1,
-):
+) -> pd.Series:
     """
-    Perform TSNE on the given pandas series.
+    Performs TSNE on the given pandas series. More informations on the algorithm can be found here:
+    https://en.wikipedia.org/wiki/T-distributed_stochastic_neighbor_embedding
 
     Parameters
     ----------
@@ -328,6 +367,19 @@ def tsne(
         Number of components to keep. If n_components is not set or None, all components are kept.
     perplexity : int, default is 30.0
 
+    Returns
+    -------
+    Pandas Series
+
+    Examples
+    --------
+    >>> import texthero as hero
+    >>> import pandas as pd
+    >>> s = pd.Series([[5.0, 4.4],[3,4]])
+    >>> hero.representation.tsne(s)
+    0     [51.8325309753418, -4513.25439453125]
+    1    [-51.83253860473633, 4513.25439453125]
+    dtype: object
     """
     tsne = TSNE(
         n_components=n_components,
@@ -367,9 +419,18 @@ def kmeans(
     copy_x=True,
     n_jobs=-1,
     algorithm="auto",
-):
+) -> pd.Series:
     """
-    Perform K-means clustering algorithm.
+    Performs K-means clustering algorithm. More informations can be found here:
+    https://en.wikipedia.org/wiki/K-means_clustering
+
+    Parameters
+    ----------
+    s: Pandas Series
+    n_clusters: int
+        Default value is set to 5
+    init: 
+
 
     Return a "category" Pandas Series.
     """
