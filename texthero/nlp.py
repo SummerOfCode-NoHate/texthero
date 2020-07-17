@@ -17,7 +17,7 @@ def named_entities(s, package="spacy"):
 
     Tuple: (`entity'name`, `entity'label`, `starting character`, `ending character`)
 
-    Under the hood, `named_entities` make use of Spacy name entity recognition.
+    Under the hood, `named_entities` makes use of `Spacy name entity recognition <https://spacy.io/usage/linguistic-features#named-entities>`_
 
     List of labels:
      - `PERSON`: People, including fictional.
@@ -38,6 +38,11 @@ def named_entities(s, package="spacy"):
      - `QUANTITY`: Measurements, as of weight or distance.
      - `ORDINAL`: “first”, “second”, etc.
      - `CARDINAL`: Numerals that do not fall under another type.
+
+    Parameters
+    ----------
+        s : Pandas Series
+
 
     Examples
     --------
@@ -77,7 +82,7 @@ def noun_chunks(s):
 
     Parameters
     ----------
-    input : Pandas Series
+        s : Pandas Series
     
     Examples
     --------
@@ -112,7 +117,12 @@ def count_sentences(s: pd.Series) -> pd.Series:
 
     Return a new Pandas Series with the number of sentences per cell.
 
-    This makes use of the SpaCy `sentencizer <https://spacy.io/api/sentencizer>`.
+    This makes use of the SpaCy `sentencizer <https://spacy.io/api/sentencizer>`_
+
+    Parameters
+    ----------
+        s : Pandas Series
+
 
     Examples
     --------
