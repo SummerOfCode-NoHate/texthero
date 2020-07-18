@@ -42,7 +42,7 @@ def fillna(s: pd.Series) -> pd.Series:
     >>> import texthero as hero
     >>> import pandas as pd
     >>> s = pd.Series([np.NaN, "I'm", "You're"])
-    >>> hero.preprocessing.fillna(s)
+    >>> hero.fillna(s)
     0          
     1       I'm
     2    You're
@@ -70,7 +70,7 @@ def lowercase(s: pd.Series) -> pd.Series:
     >>> import texthero as hero
     >>> import pandas as pd
     >>> s = pd.Series("This is NeW YoRk wIth upPer letters")
-    >>> hero.preprocessing.lowercase(s)
+    >>> hero.lowercase(s)
     0    this is new york with upper letters
     dtype: object
     """
@@ -176,7 +176,7 @@ def replace_punctuation(s: pd.Series, symbol: str = " ") -> pd.Series:
     >>> import texthero as hero
     >>> import pandas as pd
     >>> s = pd.Series("Finnaly.")
-    >>> hero.preprocessing.replace_punctuation(s, " <PUNCT> ")
+    >>> hero.replace_punctuation(s, " <PUNCT> ")
     0    Finnaly <PUNCT> 
     dtype: object
     """
@@ -205,20 +205,20 @@ def remove_punctuation(s: pd.Series) -> pd.Series:
     >>> import texthero as hero
     >>> import pandas as pd
     >>> s = pd.Series("Finnaly.")
-    >>> hero.preprocessing.remove_punctuation(s)
+    >>> hero.remove_punctuation(s)
     0    Finnaly 
     dtype: object
     """
     return replace_punctuation(s, " ")
 
 
-def _remove_diacritics(s: str) -> str:
+def _remove_diacritics(text: str) -> str:
     """
     Removes diacritics and accents from one string.
 
     Parameters
     ----------
-    s : Pandas Series
+    text : String
 
     Returns
     -------
@@ -226,14 +226,14 @@ def _remove_diacritics(s: str) -> str:
 
     Examples
     --------
-    >>> import texthero as hero
+    >>> from texthero.preprocessing import _remove_diacritics
     >>> import pandas as pd
     >>> text = "Montréal, über, 12.89, Mère, Françoise, noël, 889, اِس, اُس"
-    >>> hero.preprocessing._remove_diacritics(text)
+    >>> _remove_diacritics(text)
     'Montreal, uber, 12.89, Mere, Francoise, noel, 889, اس, اس'
     """
-    nfkd_form = unicodedata.normalize("NFKD", s)
-    # unicodedata.combinding(char) checks if the character is in
+    nfkd_form = unicodedata.normalize("NFKD", text)
+    # unicodedata.combining(char) checks if the character is in
     # composed form (consisting of several unicode chars combined), i.e. a diacritic
     return "".join([char for char in nfkd_form if not unicodedata.combining(char)])
 
@@ -258,7 +258,7 @@ def remove_diacritics(s: pd.Series) -> pd.Series:
     >>> import texthero as hero
     >>> import pandas as pd
     >>> s = pd.Series("Montréal, über, 12.89, Mère, Françoise, noël, 889, اِس, اُس")
-    >>> hero.preprocessing.remove_diacritics(s)
+    >>> hero.remove_diacritics(s)
     0   Montreal, uber, 12.89, Mere, Francoise, noel, 889, اس, اس
     dtype: object
     """
@@ -287,7 +287,7 @@ def remove_whitespace(s: pd.Series) -> pd.Series:
     >>> import texthero as hero
     >>> import pandas as pd
     >>> s = pd.Series("Title \n Subtitle \t    ...")
-    >>> hero.preprocessing.remove_whitespace(s)
+    >>> hero.remove_whitespace(s)
     0    Title Subtitle ...
     dtype: object
     """
@@ -313,11 +313,11 @@ def _replace_stopwords(text: str, words: Set[str], symbol: str = " ") -> str:
 
     Examples
     --------
-    >>> import texthero as hero
+    >>> from texthero.preprocessing import _replace_stopwords
     >>> s = "the book of the jungle"
     >>> symbol = "$"
     >>> stopwords = ["the", "of"]
-    >>> hero.preprocessing._replace_stopwords(s, stopwords, symbol)
+    >>> _replace_stopwords(s, stopwords, symbol)
     '$ book $ $ jungle'
 
     """
@@ -358,7 +358,7 @@ def replace_stopwords(
     >>> import texthero as hero
     >>> import pandas as pd
     >>> s = pd.Series("the book of the jungle")
-    >>> hero.preprocessing.replace_stopwords(s, "X")
+    >>> hero.replace_stopwords(s, "X")
     0    X book X X jungle
     dtype: object
 
@@ -449,7 +449,7 @@ def stem(s: pd.Series, stem="snowball", language="english") -> pd.Series:
     >>> import texthero as hero
     >>> import pandas as pd
     >>> s = pd.Series("I used to go \t\n running.")
-    >>> hero.preprocessing.stem(s)
+    >>> hero.stem(s)
     0    i use to go running.
     dtype: object
     """
@@ -525,6 +525,7 @@ def clean(s: pd.Series, pipeline=None) -> pd.Series:
     >>> import texthero as hero
     >>> import pandas as pd
     >>> s = pd.Series("Uper 9dig.        he her ÄÖÜ")
+    >>> hero.clean(s)
     0    uper 9dig aou
     dtype: object
     """
@@ -554,7 +555,7 @@ def has_content(s: pd.Series) -> pd.Series:
     >>> import texthero as hero
     >>> import pandas as pd
     >>> s = pd.Series(["content", np.nan, "\t\n", " "])
-    >>> hero.preprocessing.has_content(s)
+    >>> hero.has_content(s)
     0     True
     1    False
     2    False
@@ -582,7 +583,7 @@ def drop_no_content(s: pd.Series) -> pd.Series:
     >>> import texthero as hero
     >>> import pandas as pd
     >>> s = pd.Series(["content", np.nan, "\t\n", " "])
-    >>> drop_no_content(s)
+    >>> hero.drop_no_content(s)
     0    content
     dtype: object
 
@@ -609,7 +610,7 @@ def remove_round_brackets(s: pd.Series) -> pd.Series:
     >>> import texthero as hero
     >>> import pandas as pd
     >>> s = pd.Series("Texthero (is not a superhero!)")
-    >>> remove_round_brackets(s)
+    >>> hero.remove_round_brackets(s)
     0    Texthero 
     dtype: object
 
@@ -642,7 +643,7 @@ def remove_curly_brackets(s: pd.Series) -> pd.Series:
     >>> import texthero as hero
     >>> import pandas as pd
     >>> s = pd.Series("Texthero {is not a superhero!}")
-    >>> remove_curly_brackets(s)
+    >>> hero.remove_curly_brackets(s)
     0    Texthero 
     dtype: object
 
@@ -675,7 +676,7 @@ def remove_square_brackets(s: pd.Series) -> pd.Series:
     >>> import texthero as hero
     >>> import pandas as pd
     >>> s = pd.Series("Texthero [is not a superhero!]")
-    >>> remove_square_brackets(s)
+    >>> hero.remove_square_brackets(s)
     0    Texthero 
     dtype: object
 
@@ -710,7 +711,7 @@ def remove_angle_brackets(s: pd.Series) -> pd.Series:
     >>> import texthero as hero
     >>> import pandas as pd
     >>> s = pd.Series("Texthero <is not a superhero!>")
-    >>> remove_angle_brackets(s)
+    >>> hero.remove_angle_brackets(s)
     0    Texthero 
     dtype: object
 
@@ -744,7 +745,7 @@ def remove_brackets(s: pd.Series) -> pd.Series:
     >>> import texthero as hero
     >>> import pandas as pd
     >>> s = pd.Series("Texthero (round) [square] [curly] [angle]")
-    >>> remove_brackets(s)
+    >>> hero.remove_brackets(s)
     0    Texthero    
     dtype: object
 
@@ -785,7 +786,7 @@ def remove_html_tags(s: pd.Series) -> pd.Series:
     >>> import texthero as hero
     >>> import pandas as pd
     >>> s = pd.Series("<html><h1>Title</h1></html>")
-    >>> remove_html_tags(s)
+    >>> hero.remove_html_tags(s)
     0    Title
     dtype: object
 
