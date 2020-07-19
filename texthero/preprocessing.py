@@ -53,7 +53,7 @@ def fillna(s: pd.Series) -> pd.Series:
 
 @handle_nans
 def lowercase(s: pd.Series) -> pd.Series:
-   
+
     """
     Lowercase all text in a series.
     
@@ -258,9 +258,9 @@ def remove_diacritics(s: pd.Series) -> pd.Series:
     >>> import texthero as hero
     >>> import pandas as pd
     >>> s = pd.Series("Montréal, über, 12.89, Mère, Françoise, noël, 889, اِس, اُس")
-    >>> hero.remove_diacritics(s)
-    0   Montreal, uber, 12.89, Mere, Francoise, noel, 889, اس, اس
-    dtype: object
+    >>> hero.remove_diacritics(s)[0]
+    'Montreal, uber, 12.89, Mere, Francoise, noel, 889, اس, اس'
+
     """
     return s.astype("unicode").apply(_remove_diacritics)
 
@@ -838,7 +838,9 @@ def tokenize(s: pd.Series) -> pd.Series:
 
 
 @handle_nans
-def tokenize_with_phrases(s: pd.Series, min_count: int = 5, threshold: int = 10) -> pd.Series:
+def tokenize_with_phrases(
+    s: pd.Series, min_count: int = 5, threshold: int = 10
+) -> pd.Series:
     r"""Tokenize and group up collocations words
 
     Tokenizes the given pandas Series and group up bigrams where each tokens has at least min_count term frequrncy and where the threshold is larger than the underline formula.

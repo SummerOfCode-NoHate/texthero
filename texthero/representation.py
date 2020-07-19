@@ -107,8 +107,13 @@ Vectorization
 
 @handle_nans
 def term_frequency(
-    s: pd.Series, max_features: Optional[int] = None, return_feature_names=False, min_df=1, max_df=1.0, binary=False
-)-> pd.Series:
+    s: pd.Series,
+    max_features: Optional[int] = None,
+    return_feature_names=False,
+    min_df=1,
+    max_df=1.0,
+    binary=False,
+) -> pd.Series:
     """
     Represents a text-based Pandas Series using term_frequency.
 
@@ -172,8 +177,12 @@ def term_frequency(
         s = preprocessing.tokenize(s)
 
     tf = CountVectorizer(
-        max_features=max_features, tokenizer=lambda x: x, preprocessor=lambda x: x,
-        min_df=min_df, max_df=max_df, binary=binary
+        max_features=max_features,
+        tokenizer=lambda x: x,
+        preprocessor=lambda x: x,
+        min_df=min_df,
+        max_df=max_df,
+        binary=binary,
     )
     s = pd.Series(tf.fit_transform(s).toarray().tolist(), index=s.index)
 
@@ -291,7 +300,7 @@ Dimensionality reduction
 
 
 @handle_nans
-def pca(s: pd.Series, n_components=2) -> pd.Series:
+def pca(s: pd.Series, n_components=2, random_state=None) -> pd.Series:
     """
     Perform principal component analysis on the given Pandas Series.
 
@@ -317,6 +326,9 @@ def pca(s: pd.Series, n_components=2) -> pd.Series:
     n_components : Int. Default is 2.
         Number of components to keep (dimensionality of output vectors).
         If n_components is not set or None, all components are kept.
+    random_state : int, RandomState instance, default=None
+        Pass an int for reproducible results across multiple function calls.
+
 
     Returns
     -------
@@ -330,10 +342,10 @@ def pca(s: pd.Series, n_components=2) -> pd.Series:
     >>> s = hero.clean(s)
     >>> s = hero.tokenize(s)
     >>> s = hero.tfidf(s)
-    >>> hero.pca(s)
+    >>> hero.pca(s, random_state=42)
     document
-    0    [-2.8974405469250537, 4.440892098500627e-16]
-    1     [2.8974405469250546, 4.440892098500625e-16]
+    0     [1.5713577608669735, 1.1102230246251565e-16]
+    1    [-1.5713577608669729, 1.1102230246251568e-16]
     dtype: object
 
     See also
@@ -341,7 +353,7 @@ def pca(s: pd.Series, n_components=2) -> pd.Series:
     `PCA on Wikipedia <https://en.wikipedia.org/wiki/Principal_component_analysis>`_
 
     """
-    pca = PCA(n_components=n_components)
+    pca = PCA(n_components=n_components, random_state=random_state)
     return pd.Series(pca.fit_transform(list(s)).tolist(), index=s.index)
 
 
@@ -551,10 +563,10 @@ def tsne(
     >>> s = hero.clean(s)
     >>> s = hero.tokenize(s)
     >>> s = hero.term_frequency(s)
-    >>> hero.tsne(s)
-    0    [-170.22032165527344, -89.17972564697266]
-    1     [39.195308685302734, -231.8893585205078]
-    2      [58.07919692993164, 20.825794219970703]
+    >>> hero.tsne(s, random_state=42)
+    0      [-18.833383560180664, -276.800537109375]
+    1     [-210.60179138183594, 143.00535583496094]
+    2    [-478.27984619140625, -232.97410583496094]
     dtype: object
 
     See also
@@ -684,7 +696,7 @@ def kmeans(
     >>> s = hero.clean(s)
     >>> s = hero.tokenize(s)
     >>> s = hero.term_frequency(s)
-    >>> hero.kmeans(s, n_clusters=2)
+    >>> hero.kmeans(s, n_clusters=2, random_state=42)
     0    1
     1    0
     2    1
@@ -804,10 +816,11 @@ def dbscan(
     >>> s = hero.tokenize(s)
     >>> s = hero.tfidf(s)
     >>> hero.dbscan(s, min_samples=1, eps=4)
-    0    1
-    1    0
-    2    1
-    3    0
+    document
+    0    0
+    1    1
+    2    0
+    3    1
     dtype: object
     >>> # As we can see, the documents are correctly
     >>> # separated into topics / clusters by the algorithm
@@ -912,7 +925,7 @@ def meanshift(
     >>> import texthero as hero
     >>> import pandas as pd
     >>> s = pd.Series([[1, 1], [2, 1], [1, 0], [4, 7], [3, 5], [3, 6]])
-    >>> hero.meanshift(s)
+    >>> hero.meanshift(s, bandwidth=2)
     0    1
     1    1
     2    1

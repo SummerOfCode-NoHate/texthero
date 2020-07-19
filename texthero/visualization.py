@@ -61,7 +61,7 @@ def scatterplot(
     >>> df["tfidf"] = hero.tfidf(df["texts"])
     >>> df["topics"] = hero.kmeans(df["tfidf"], n_clusters=2)
     >>> df["pca"] = hero.pca(df["tfidf"], n_components=3)
-    >>> hero.scatterplot(df, col="pca", color="topics", hover_name="texts")
+    >>> hero.scatterplot(df, col="pca", color="topics", hover_name="texts") # doctest: +SKIP
     """
 
     x = df[col].apply(lambda x: x[0])
@@ -70,18 +70,32 @@ def scatterplot(
     if len(df[col][0]) == 3:
         z = df[col].apply(lambda x: x[2])
         fig = px.scatter_3d(
-            df, x=x, y=y, z=z, color=color, hover_data=hover_data, title=title, hover_name=hover_name
+            df,
+            x=x,
+            y=y,
+            z=z,
+            color=color,
+            hover_data=hover_data,
+            title=title,
+            hover_name=hover_name,
         )
     else:
         fig = px.scatter(
-            df, x=x, y=y, color=color, hover_data=hover_data, title=title, hover_name=hover_name
+            df,
+            x=x,
+            y=y,
+            color=color,
+            hover_data=hover_data,
+            title=title,
+            hover_name=hover_name,
         )
 
     # fig.show(config={'displayModeBar': False})
-    fig.show()
 
     if return_figure:
         return fig
+    else:
+        fig.show()
 
 
 """
@@ -209,6 +223,7 @@ def top_words(s: pd.Series, normalize=False) -> pd.Series:
 
     Examples
     --------
+    >>> import texthero as hero
     >>> s = pd.Series("one two two three three three")
     >>> hero.top_words(s)
     three    3
