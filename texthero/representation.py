@@ -87,6 +87,25 @@ def representation_series_to_flat_series(
     return s
 
 
+def _check_is_valid_representation(s: pd.Series) -> bool:
+    """
+    Check if the given Pandas Series is a Document Representation Series.
+
+    Returns true if Series is Document Representation Series, raises ValueError if not.
+    """
+
+    if not isinstance(s.index, pd.MultiIndex):
+        raise ValueError(
+            f"The input Pandas Series should be a Representation Pandas Series and should have a MultiIndex. The given Pandas Series does not appears to have MultiIndex"
+        )
+
+    if s.index.nlevels != 2:
+        raise ValueError(
+            f"The input Pandas Series should be a Representation Pandas Series and should have a MultiIndex, where the first level represent the document and the second one the words/token. The given Pandas Series has {s.index.nlevels} number of levels instead of 2."
+        )
+    return True
+
+
 # Warning message for not-tokenized inputs
 _not_tokenized_warning_message = (
     "It seems like the given Pandas Series s is not tokenized. This function will"
@@ -101,8 +120,14 @@ Vectorization
 
 
 def term_frequency(
-    s: pd.Series, max_features: Optional[int] = None, return_feature_names=False
-):
+    s: pd.Series,
+    max_features: Optional[int] = None,
+    return_feature_names=False,
+    min_df=1,
+    max_df=1.0,
+    binary=False,
+    return_flat_series=False
+) -> pd.Series:
     """
     Represent a text-based Pandas Series using term_frequency.
 
@@ -112,11 +137,32 @@ def term_frequency(
     Parameters
     ----------
     s : Pandas Series
-    max_features : int, optional
-        Maximum number of features to keep.
-    return_features_names : Boolean, False by Default
-        If True, return a tuple (*term_frequency_series*, *features_names*)
+    max_features : int, optional, default to None.
+        Maximum number of features to keep. Will keep all features if set to None.
+    return_features_names : Boolean, default to False.
+        If True, return a tuple (*term_frequency_series*, *features_names*).
+        Only applicable if return_flat_series is set to True.
+    max_df : float in range [0.0, 1.0] or int, default=1.0
+        Ignore terms that have a document frequency (number of documents they appear in)
+        frequency strictly higher than the given threshold.
+        If float, the parameter represents a proportion of documents, integer
+        absolute counts.
+    min_df : float in range [0.0, 1.0] or int, default=1
+        When building the vocabulary ignore terms that have a document
+        frequency (number of documents they appear in) strictly 
+        lower than the given threshold.
+        If float, the parameter represents a proportion of documents, integer
+        absolute counts.
+    binary : bool, default=False
+        If True, all non zero counts are set to 1.
+    return_flat_series : bool, default=False
+        Whether to return a flat Series (document vectors in every cell) instead
+        of a Document Representation Series. Will be less memory-efficient.
+        See also: TODO
 
+    Returns
+    -------
+    Pandas Series
 
     Examples
     --------
@@ -151,12 +197,30 @@ def term_frequency(
     tf = CountVectorizer(
         max_features=max_features, tokenizer=lambda x: x, preprocessor=lambda x: x,
     )
-    s = pd.Series(tf.fit_transform(s).toarray().tolist(), index=s.index)
+    tf_vectors_csr = tf.fit_transform(s)
 
-    if return_feature_names:
-        return (s, tf.get_feature_names())
-    else:
-        return s
+    tf_vectors_coo = coo_matrix(tf_vectors_csr)
+    s_out = pd.Series.sparse.from_coo(tf_vectors_coo)
+
+    features_names = tf.get_feature_names()
+
+    # Map word index to word name
+    s_out.index = s_out.index.map(lambda x: (
+        s.index[x[0]], features_names[x[1]])
+    )
+
+    s_out.rename_axis(["document", "word"], inplace=True)
+
+    if return_flat_series:
+
+        s_out = representation_series_to_flat_series(
+            s_out, fill_missing_with=0.0, index=s.index
+        )
+
+        if return_feature_names:
+            return (s_out, tf.get_feature_names())
+
+    return s_out
 
 
 def tfidf(
