@@ -390,13 +390,13 @@ def pca(s, n_components=2):
     return s_out
 
 
-def nmf(s, n_components=2):
+def nmf(s, n_components=2, random_state_arg = 0):
     """
     Perform non-negative matrix factorization.
 
     
     """
-    nmf = NMF(n_components=n_components, init="random", random_state=0)
+    nmf = NMF(n_components=n_components, init="random", random_state=random_state_arg)
 
     if _check_is_valid_representation(s):
 
