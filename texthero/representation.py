@@ -553,7 +553,27 @@ def dbscan(
     Return a "category" Pandas Series.
     """
 
-    return pd.Series(
+    if _check_is_valid_representation(s):
+
+        if pd.api.types.is_sparse(s):
+            s_csr_matrix = s_csr_matrix(s.sparse.to_coo()[0])
+            if s_csr_matrix.shape[1] > 1000:
+                warnings.warn(
+                    "Be careful. You are trying to compute PCA from a Sparse Pandas Series with a very large vocabulary. Principal Component Analysis normalize the data and this act requires to expand the input Sparse Matrix. This operation might take long. Consider using `svd_truncated` instead as it can deals with Sparse Matrix efficiently."
+                )
+        else:
+            # Threat it as a Sparse matrix anyway for efficiency.
+            s = s.astype("Sparse")
+            s_csr_matrix = s_csr_matrix(s.sparse.to_coo()[0])
+
+        s_dense_matrix = s_csr_matrix.todense()
+
+    # Else: no Document Representation Series -> like before
+    else:
+        s_dense_matrix = s
+
+
+    s_out = pd.Series(
         DBSCAN(
             eps=eps,
             min_samples=min_samples,
@@ -563,10 +583,12 @@ def dbscan(
             leaf_size=leaf_size,
             p=p,
             n_jobs=n_jobs,
-        ).fit_predict(list(s)),
+        ).fit_predict(list(s_dense_matrix)),
         index=s.index,
     ).astype("category")
+    s_out = s_out.rename_axis(None)
 
+    return s_out
 
 def meanshift(
     s,
@@ -584,7 +606,29 @@ def meanshift(
     Return a "category" Pandas Series.
     """
 
-    return pd.Series(
+ 
+
+    if _check_is_valid_representation(s):
+
+        if pd.api.types.is_sparse(s):
+            s_csr_matrix = s_csr_matrix(s.sparse.to_coo()[0])
+            if s_csr_matrix.shape[1] > 1000:
+                warnings.warn(
+                    "Be careful. You are trying to compute PCA from a Sparse Pandas Series with a very large vocabulary. Principal Component Analysis normalize the data and this act requires to expand the input Sparse Matrix. This operation might take long. Consider using `svd_truncated` instead as it can deals with Sparse Matrix efficiently."
+                )
+        else:
+            # Threat it as a Sparse matrix anyway for efficiency.
+            s = s.astype("Sparse")
+            s_csr_matrix = s_csr_matrix(s.sparse.to_coo()[0])
+
+        s_dense_matrix = s_csr_matrix.todense()
+
+    # Else: no Document Representation Series -> like before
+    else:
+        s_dense_matrix = s
+
+
+    s_out = pd.Series(
         MeanShift(
             bandwidth=bandwidth,
             seeds=seeds,
@@ -593,9 +637,13 @@ def meanshift(
             cluster_all=cluster_all,
             n_jobs=n_jobs,
             max_iter=max_iter,
-        ).fit_predict(list(s)),
+        ).fit_predict(list(s_dense_matrix)),
         index=s.index,
     ).astype("category")
+    s_out = s_out.rename_axis(None)
+
+    return s_out
+
 
 
 """
