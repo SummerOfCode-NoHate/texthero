@@ -97,7 +97,6 @@ def _check_is_valid_representation(s: pd.Series) -> bool:
 
     # TODO: in Version 2 when only representation is accepted as input -> change "return False" to "raise ValueError"
 
-
     if not isinstance(s.index, pd.MultiIndex):
         return False
         # raise ValueError(
@@ -133,7 +132,7 @@ def term_frequency(
     min_df=1,
     max_df=1.0,
     binary=False,
-    return_flat_series=False
+    return_flat_series=False,
 ) -> pd.Series:
     """
     Represent a text-based Pandas Series using term_frequency.
@@ -212,9 +211,7 @@ def term_frequency(
     features_names = tf.get_feature_names()
 
     # Map word index to word name
-    s_out.index = s_out.index.map(lambda x: (
-        s.index[x[0]], features_names[x[1]])
-    )
+    s_out.index = s_out.index.map(lambda x: (s.index[x[0]], features_names[x[1]]))
 
     s_out.rename_axis(["document", "word"], inplace=True)
 
@@ -231,7 +228,12 @@ def term_frequency(
 
 
 def tfidf(
-    s: pd.Series, max_features=None, min_df=1, max_df=1.0, return_feature_names=False, return_flat_series=False
+    s: pd.Series,
+    max_features=None,
+    min_df=1,
+    max_df=1.0,
+    return_feature_names=False,
+    return_flat_series=False,
 ) -> pd.Series:
     """
     Represent a text-based Pandas Series using TF-IDF.
@@ -291,7 +293,7 @@ def tfidf(
     1    [2.0, 0.0, 1.4054651081081644]
     dtype: object, ['Bye', 'Hi', 'Test'])
     """
-    
+
     # Check if input is tokenized. Else, print warning and tokenize.
     if not isinstance(s.iloc[0], list):
         warnings.warn(_not_tokenized_warning_message, DeprecationWarning)
@@ -377,7 +379,6 @@ def pca(s, n_components=2):
     # Else: no Document Representation Series -> like before
     else:
         s_dense_matrix = s
-
 
     s_out = pd.Series(
         pca.fit_transform(s_dense_matrix).tolist(), index=s.index.unique(level=0),
@@ -487,7 +488,6 @@ def tsne(
     else:
         s_dense_matrix = s
 
-
     s_out = pd.Series(tsne.fit_transform(list(s_dense_matrix)).tolist(), index=s.index)
 
     s_out = s_out.rename_axis(None)
@@ -519,7 +519,26 @@ def kmeans(
 
     Return a "category" Pandas Series.
     """
-    vectors = list(s)
+    if _check_is_valid_representation(s):
+
+        if pd.api.types.is_sparse(s):
+            s_csr_matrix = s_csr_matrix(s.sparse.to_coo()[0])
+            if s_csr_matrix.shape[1] > 1000:
+                warnings.warn(
+                    "Be careful. You are trying to compute PCA from a Sparse Pandas Series with a very large vocabulary. Principal Component Analysis normalize the data and this act requires to expand the input Sparse Matrix. This operation might take long. Consider using `svd_truncated` instead as it can deals with Sparse Matrix efficiently."
+                )
+        else:
+            # Treat it as a Sparse matrix anyway for efficiency.
+            s = s.astype("Sparse")
+            s_csr_matrix = s_csr_matrix(s.sparse.to_coo()[0])
+
+        s_dense_matrix = s_csr_matrix.todense()
+
+    # Else: no Document Representation Series -> like before
+    else:
+        s_dense_matrix = s
+
+    vectors = list(s_dense_matrix)
     kmeans = KMeans(
         n_clusters=n_clusters,
         init=init,
@@ -533,7 +552,14 @@ def kmeans(
         n_jobs=n_jobs,
         algorithm=algorithm,
     ).fit(vectors)
-    return pd.Series(kmeans.predict(vectors), index=s.index).astype("category")
+
+    s_out = pd.Series(kmeans.predict(vectors), index=s.index.unique(level=0),).astype(
+        "category"
+    )
+
+    s_out = s_out.rename_axis(None)
+
+    return s_out
 
 
 def dbscan(
@@ -572,7 +598,6 @@ def dbscan(
     else:
         s_dense_matrix = s
 
-
     s_out = pd.Series(
         DBSCAN(
             eps=eps,
@@ -590,6 +615,7 @@ def dbscan(
 
     return s_out
 
+
 def meanshift(
     s,
     bandwidth=None,
@@ -605,8 +631,6 @@ def meanshift(
 
     Return a "category" Pandas Series.
     """
-
- 
 
     if _check_is_valid_representation(s):
 
@@ -627,7 +651,6 @@ def meanshift(
     else:
         s_dense_matrix = s
 
-
     s_out = pd.Series(
         MeanShift(
             bandwidth=bandwidth,
@@ -643,7 +666,6 @@ def meanshift(
     s_out = s_out.rename_axis(None)
 
     return s_out
-
 
 
 """
