@@ -366,59 +366,55 @@ def pca(s, n_components=2):
     if _check_is_valid_representation(s):
 
         if pd.api.types.is_sparse(s):
-            s_csr_matrix = s_csr_matrix(s.sparse.to_coo()[0])
-            if s_csr_matrix.shape[1] > 1000:
+            s_coo_matrix = s.sparse.to_coo()[0]
+            if s_coo_matrix.shape[1] > 1000:
                 warnings.warn(
                     "Be careful. You are trying to compute PCA from a Sparse Pandas Series with a very large vocabulary. Principal Component Analysis normalize the data and this act requires to expand the input Sparse Matrix. This operation might take long. Consider using `svd_truncated` instead as it can deals with Sparse Matrix efficiently."
                 )
         else:
             # Treat it as a Sparse matrix anyway for efficiency.
             s = s.astype("Sparse")
-            s_csr_matrix = s_csr_matrix(s.sparse.to_coo()[0])
+            s_coo_matrix = s.sparse.to_coo()[0]
 
-        s_dense_matrix = s_csr_matrix.todense()
+        s_for_vectorization = s_coo_matrix.todense()
 
     # Else: no Document Representation Series -> like before
     else:
-        s_dense_matrix = list(s)
+        s_for_vectorization = list(s)
 
     s_out = pd.Series(
-        pca.fit_transform(s_dense_matrix).tolist(), index=s.index.unique(level=0),
+        pca.fit_transform(s_for_vectorization).tolist(), index=s.index.unique(level=0),
     )
     s_out = s_out.rename_axis(None)
 
     return s_out
 
 
-def nmf(s, n_components=2, random_state_arg = 0):
+def nmf(s, n_components=2, random_state_arg=0):
     """
     Perform non-negative matrix factorization.
 
     
     """
-    nmf = NMF(n_components=n_components, init="random", random_state=random_state_arg)
+    nmf = NMF(n_components=n_components, init=None, random_state=random_state_arg)
 
     if _check_is_valid_representation(s):
 
         if pd.api.types.is_sparse(s):
-            s_csr_matrix = s_csr_matrix(s.sparse.to_coo()[0])
-            if s_csr_matrix.shape[1] > 1000:
-                warnings.warn(
-                    "Be careful. You are trying to compute PCA from a Sparse Pandas Series with a very large vocabulary. Principal Component Analysis normalize the data and this act requires to expand the input Sparse Matrix. This operation might take long. Consider using `svd_truncated` instead as it can deals with Sparse Matrix efficiently."
-                )
+            s_coo_matrix = s.sparse.to_coo()[0]
         else:
             # Treat it as a Sparse matrix anyway for efficiency.
             s = s.astype("Sparse")
-            s_csr_matrix = s_csr_matrix(s.sparse.to_coo()[0])
+            s_coo_matrix = s.sparse.to_coo()[0]
 
-        s_dense_matrix = s_csr_matrix.todense()
+        s_for_vectorization = s_coo_matrix  # NMF can work with sparse input.
 
     # Else: no Document Representation Series -> like before
     else:
-        s_dense_matrix = list(s)
+        s_for_vectorization = list(s)
 
     s_out = pd.Series(
-        nmf.fit_transform(s_dense_matrix).tolist(), index=s.index.unique(level=0),
+        nmf.fit_transform(s_for_vectorization).tolist(), index=s.index.unique(level=0),
     )
 
     s_out = s_out.rename_axis(None)
@@ -474,23 +470,19 @@ def tsne(
     if _check_is_valid_representation(s):
 
         if pd.api.types.is_sparse(s):
-            s_csr_matrix = s_csr_matrix(s.sparse.to_coo()[0])
-            if s_csr_matrix.shape[1] > 1000:
-                warnings.warn(
-                    "Be careful. You are trying to compute PCA from a Sparse Pandas Series with a very large vocabulary. Principal Component Analysis normalize the data and this act requires to expand the input Sparse Matrix. This operation might take long. Consider using `svd_truncated` instead as it can deals with Sparse Matrix efficiently."
-                )
+            s_coo_matrix = s.sparse.to_coo()[0]
         else:
-            # Threat it as a Sparse matrix anyway for efficiency.
+            # Treat it as a Sparse matrix anyway for efficiency.
             s = s.astype("Sparse")
-            s_csr_matrix = s_csr_matrix(s.sparse.to_coo()[0])
+            s_coo_matrix = s.sparse.to_coo()[0]
 
-        s_dense_matrix = s_csr_matrix.todense()
+        s_for_vectorization = s_coo_matrix  # TSNE can work with sparse input.
 
     # Else: no Document Representation Series -> like before
     else:
-        s_dense_matrix = s
+        s_for_vectorization = list(s)
 
-    s_out = pd.Series(tsne.fit_transform(list(s_dense_matrix)).tolist(), index=s.index)
+    s_out = pd.Series(tsne.fit_transform(s_for_vectorization).tolist(), index=s.index)
 
     s_out = s_out.rename_axis(None)
 
@@ -524,23 +516,18 @@ def kmeans(
     if _check_is_valid_representation(s):
 
         if pd.api.types.is_sparse(s):
-            s_csr_matrix = s_csr_matrix(s.sparse.to_coo()[0])
-            if s_csr_matrix.shape[1] > 1000:
-                warnings.warn(
-                    "Be careful. You are trying to compute PCA from a Sparse Pandas Series with a very large vocabulary. Principal Component Analysis normalize the data and this act requires to expand the input Sparse Matrix. This operation might take long. Consider using `svd_truncated` instead as it can deals with Sparse Matrix efficiently."
-                )
+            s_coo_matrix = s.sparse.to_coo()[0]
         else:
             # Treat it as a Sparse matrix anyway for efficiency.
             s = s.astype("Sparse")
-            s_csr_matrix = s_csr_matrix(s.sparse.to_coo()[0])
+            s_coo_matrix = s.sparse.to_coo()[0]
 
-        s_dense_matrix = s_csr_matrix.todense()
+        s_for_vectorization = s_coo_matrix  # kmeans can work with sparse input.
 
     # Else: no Document Representation Series -> like before
     else:
-        s_dense_matrix = s
+        s_for_vectorization = list(s)
 
-    vectors = list(s_dense_matrix)
     kmeans = KMeans(
         n_clusters=n_clusters,
         init=init,
@@ -553,11 +540,11 @@ def kmeans(
         copy_x=copy_x,
         n_jobs=n_jobs,
         algorithm=algorithm,
-    ).fit(vectors)
-
-    s_out = pd.Series(kmeans.predict(vectors), index=s.index.unique(level=0),).astype(
-        "category"
     )
+
+    s_out = pd.Series(
+        kmeans.fit_predict(s_for_vectorization), index=s.index.unique(level=0),
+    ).astype("category")
 
     s_out = s_out.rename_axis(None)
 
@@ -584,21 +571,17 @@ def dbscan(
     if _check_is_valid_representation(s):
 
         if pd.api.types.is_sparse(s):
-            s_csr_matrix = s_csr_matrix(s.sparse.to_coo()[0])
-            if s_csr_matrix.shape[1] > 1000:
-                warnings.warn(
-                    "Be careful. You are trying to compute PCA from a Sparse Pandas Series with a very large vocabulary. Principal Component Analysis normalize the data and this act requires to expand the input Sparse Matrix. This operation might take long. Consider using `svd_truncated` instead as it can deals with Sparse Matrix efficiently."
-                )
+            s_coo_matrix = s.sparse.to_coo()[0]
         else:
-            # Threat it as a Sparse matrix anyway for efficiency.
+            # Treat it as a Sparse matrix anyway for efficiency.
             s = s.astype("Sparse")
-            s_csr_matrix = s_csr_matrix(s.sparse.to_coo()[0])
+            s_coo_matrix = s.sparse.to_coo()[0]
 
-        s_dense_matrix = s_csr_matrix.todense()
+        s_for_vectorization = s_csr_matrix  # dbscan can work on sparse.
 
     # Else: no Document Representation Series -> like before
     else:
-        s_dense_matrix = s
+        s_for_vectorization = list(s)
 
     s_out = pd.Series(
         DBSCAN(
@@ -610,9 +593,10 @@ def dbscan(
             leaf_size=leaf_size,
             p=p,
             n_jobs=n_jobs,
-        ).fit_predict(list(s_dense_matrix)),
+        ).fit_predict(s_for_vectorization),
         index=s.index,
     ).astype("category")
+
     s_out = s_out.rename_axis(None)
 
     return s_out
@@ -637,21 +621,21 @@ def meanshift(
     if _check_is_valid_representation(s):
 
         if pd.api.types.is_sparse(s):
-            s_csr_matrix = s_csr_matrix(s.sparse.to_coo()[0])
-            if s_csr_matrix.shape[1] > 1000:
+            s_coo_matrix = s.sparse.to_coo()[0]
+            if s_coo_matrix.shape[1] > 1000:
                 warnings.warn(
-                    "Be careful. You are trying to compute PCA from a Sparse Pandas Series with a very large vocabulary. Principal Component Analysis normalize the data and this act requires to expand the input Sparse Matrix. This operation might take long. Consider using `svd_truncated` instead as it can deals with Sparse Matrix efficiently."
+                    "Be careful. You are trying to compute Meanshift from a Sparse Pandas Series with a very large vocabulary. Meanshift will need to expand the input Sparse Matrix. This operation might take long."
                 )
         else:
-            # Threat it as a Sparse matrix anyway for efficiency.
+            # Treat it as a Sparse matrix anyway for efficiency.
             s = s.astype("Sparse")
-            s_csr_matrix = s_csr_matrix(s.sparse.to_coo()[0])
+            s_coo_matrix = s.sparse.to_coo()[0]
 
-        s_dense_matrix = s_csr_matrix.todense()
+        s_for_vectorization = s_csr_matrix.todense()
 
     # Else: no Document Representation Series -> like before
     else:
-        s_dense_matrix = s
+        s_for_vectorization = list(s)
 
     s_out = pd.Series(
         MeanShift(
@@ -662,7 +646,7 @@ def meanshift(
             cluster_all=cluster_all,
             n_jobs=n_jobs,
             max_iter=max_iter,
-        ).fit_predict(list(s_dense_matrix)),
+        ).fit_predict(s_for_vectorization),
         index=s.index,
     ).astype("category")
     s_out = s_out.rename_axis(None)
