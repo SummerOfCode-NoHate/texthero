@@ -91,18 +91,25 @@ def _check_is_valid_representation(s: pd.Series) -> bool:
     """
     Check if the given Pandas Series is a Document Representation Series.
 
-    Returns true if Series is Document Representation Series, raises ValueError if not.
+    Returns true if Series is Document Representation Series, else False.
+
     """
 
+    # TODO: in Version 2 when only representation is accepted as input -> change "return False" to "raise ValueError"
+
+
     if not isinstance(s.index, pd.MultiIndex):
-        raise ValueError(
-            f"The input Pandas Series should be a Representation Pandas Series and should have a MultiIndex. The given Pandas Series does not appears to have MultiIndex"
-        )
+        return False
+        # raise ValueError(
+        #     f"The input Pandas Series should be a Representation Pandas Series and should have a MultiIndex. The given Pandas Series does not appears to have MultiIndex"
+        # )
 
     if s.index.nlevels != 2:
-        raise ValueError(
-            f"The input Pandas Series should be a Representation Pandas Series and should have a MultiIndex, where the first level represent the document and the second one the words/token. The given Pandas Series has {s.index.nlevels} number of levels instead of 2."
-        )
+        return False
+        # raise ValueError(
+        #     f"The input Pandas Series should be a Representation Pandas Series and should have a MultiIndex, where the first level represent the document and the second one the words/token. The given Pandas Series has {s.index.nlevels} number of levels instead of 2."
+        # )
+
     return True
 
 
@@ -224,8 +231,8 @@ def term_frequency(
 
 
 def tfidf(
-    s: pd.Series, max_features=None, min_df=1, max_df=1.0, return_feature_names=False, returns_flat_series = False
-) -> pd.Series.sparse:
+    s: pd.Series, max_features=None, min_df=1, max_df=1.0, return_feature_names=False, return_flat_series=False
+) -> pd.Series:
     """
     Represent a text-based Pandas Series using TF-IDF.
 
@@ -266,7 +273,10 @@ def tfidf(
         frequency (number of documents a term appears in) strictly higher than the given threshold. This arguments basically permits to remove corpus-specific stop words. When the argument is a float [0.0, 1.0], the parameter represents a proportion of documents.
     return_feature_names: Boolean, optional, default to False
         Whether to return the feature (i.e. word) names with the output.
-    return_flat_series: If true, the function returns a flat series otherwise a document representation series.
+    return_flat_series : bool, default=False
+        Whether to return a flat Series (document vectors in every cell) instead
+        of a Document Representation Series. Will be less memory-efficient.
+        See also: TODO
 
 
     Examples
@@ -281,8 +291,6 @@ def tfidf(
     1    [2.0, 0.0, 1.4054651081081644]
     dtype: object, ['Bye', 'Hi', 'Test'])
     """
-
-    _check_is_valid_representation(s)
     
     # Check if input is tokenized. Else, print warning and tokenize.
     if not isinstance(s.iloc[0], list):
@@ -312,15 +320,15 @@ def tfidf(
 
     s_out.rename_axis(["document", "word"], inplace=True)
 
-    if returns_flat_series:
+    if return_flat_series:
         s_out = representation_series_to_flat_series(
             s_out, fill_missing_with=0.0, index=s.index
         )
 
-    if return_feature_names:
-        return (s_out, feature_names)
-    else:
-        return s_out
+        if return_feature_names:
+            return (s_out, feature_names)
+
+    return s_out
 
 
 """
@@ -347,28 +355,35 @@ def pca(s, n_components=2):
     >>> s = pd.Series(["Sentence one", "Sentence two"])
  
     """
-    _check_is_valid_representation(s)
-
     pca = PCA(n_components=n_components)
 
-    if pd.api.types.is_sparse(s):
-        s_csr_matrix = s_csr_matrix(s.sparse.to_coo()[0])
-        if s_csr_matrix.shape[1] > 1000:
-            warnings.warn(
-                "✋ Be careful. You are trying to compute PCA from a Sparse Pandas Series with a very large vocabulary. Principal Component Analysis normalize the data and this act requires to expand the input Sparse Matrix. This operation might take long. Consider using `svd_truncated` instead as it can deals with Sparse Matrix efficiently."
-            )
-    else:
-        # Threat it as a Sparse matrix anyway for efficiency.
-        s = s.astype("Sparse")
-        s_csr_matrix = s_csr_matrix(s.sparse.to_coo()[0])
+    if _check_is_valid_representation(s):
 
-    s_dense_matrix = s_csr_matrix.todense()
+        if pd.api.types.is_sparse(s):
+            s_csr_matrix = s_csr_matrix(s.sparse.to_coo()[0])
+            if s_csr_matrix.shape[1] > 1000:
+                warnings.warn(
+                    "Be careful. You are trying to compute PCA from a Sparse Pandas Series with a very large vocabulary. Principal Component Analysis normalize the data and this act requires to expand the input Sparse Matrix. This operation might take long. Consider using `svd_truncated` instead as it can deals with Sparse Matrix efficiently."
+                )
+        else:
+            # Threat it as a Sparse matrix anyway for efficiency.
+            s = s.astype("Sparse")
+            s_csr_matrix = s_csr_matrix(s.sparse.to_coo()[0])
+
+        s_dense_matrix = s_csr_matrix.todense()
+
+    # Else: no Document Representation Series -> like before
+    else:
+        s_dense_matrix = s
+
 
     s_out = pd.Series(
         pca.fit_transform(s_dense_matrix).tolist(), index=s.index.unique(level=0),
     )
     s_out = s_out.rename_axis(None)
+
     return s_out
+
 
 def nmf(s, n_components=2):
     """
