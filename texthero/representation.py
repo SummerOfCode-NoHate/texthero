@@ -333,6 +333,8 @@ def tfidf(
 
 """
 Dimensionality reduction
+
+TODO: truncated_svd
 """
 
 
@@ -366,7 +368,7 @@ def pca(s, n_components=2):
                     "Be careful. You are trying to compute PCA from a Sparse Pandas Series with a very large vocabulary. Principal Component Analysis normalize the data and this act requires to expand the input Sparse Matrix. This operation might take long. Consider using `svd_truncated` instead as it can deals with Sparse Matrix efficiently."
                 )
         else:
-            # Threat it as a Sparse matrix anyway for efficiency.
+            # Treat it as a Sparse matrix anyway for efficiency.
             s = s.astype("Sparse")
             s_csr_matrix = s_csr_matrix(s.sparse.to_coo()[0])
 
@@ -392,7 +394,33 @@ def nmf(s, n_components=2):
     
     """
     nmf = NMF(n_components=n_components, init="random", random_state=0)
-    return pd.Series(nmf.fit_transform(list(s)).tolist(), index=s.index)
+
+    if _check_is_valid_representation(s):
+
+        if pd.api.types.is_sparse(s):
+            s_csr_matrix = s_csr_matrix(s.sparse.to_coo()[0])
+            if s_csr_matrix.shape[1] > 1000:
+                warnings.warn(
+                    "Be careful. You are trying to compute PCA from a Sparse Pandas Series with a very large vocabulary. Principal Component Analysis normalize the data and this act requires to expand the input Sparse Matrix. This operation might take long. Consider using `svd_truncated` instead as it can deals with Sparse Matrix efficiently."
+                )
+        else:
+            # Treat it as a Sparse matrix anyway for efficiency.
+            s = s.astype("Sparse")
+            s_csr_matrix = s_csr_matrix(s.sparse.to_coo()[0])
+
+        s_dense_matrix = s_csr_matrix.todense()
+
+    # Else: no Document Representation Series -> like before
+    else:
+        s_dense_matrix = s
+
+    s_out = pd.Series(
+        nmf.fit_transform(s_dense_matrix).tolist(), index=s.index.unique(level=0),
+    )
+
+    s_out = s_out.rename_axis(None)
+
+    return s_out
 
 
 def tsne(
