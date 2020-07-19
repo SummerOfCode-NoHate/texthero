@@ -176,9 +176,10 @@ def term_frequency(
     >>> import pandas as pd
     >>> s = pd.Series(["Sentence one", "Sentence two"])
     >>> s = hero.tokenize(s)
-    >>> hero.term_frequency(s)
-    0    [1, 1, 0]
-    1    [1, 0, 1]
+    >>> hero.term_frequency(s, return_flat_series=True)
+    document
+    0    [1, 1.0, 0.0]
+    1    [1, 0.0, 1.0]
     dtype: object
     
     To return the features_names:
@@ -187,9 +188,10 @@ def term_frequency(
     >>> import pandas as pd
     >>> s = pd.Series(["Sentence one", "Sentence two"])
     >>> s = hero.tokenize(s)
-    >>> hero.term_frequency(s, return_feature_names=True)
-    (0    [1, 1, 0]
-    1    [1, 0, 1]
+    >>> hero.term_frequency(s, return_feature_names=True, return_flat_series=True)
+    (document
+    0    [1, 1.0, 0.0]
+    1    [1, 0.0, 1.0]
     dtype: object, ['Sentence', 'one', 'two'])
 
     """
@@ -287,7 +289,7 @@ def tfidf(
     >>> import pandas as pd
     >>> s = pd.Series(["Hi Bye", "Test Bye Bye"])
     >>> s = hero.tokenize(s)
-    >>> hero.tfidf(s, return_feature_names=True)
+    >>> hero.tfidf(s, return_feature_names=True, return_flat_series=True)
     (document
     0    [1.0, 1.4054651081081644, 0.0]
     1    [2.0, 0.0, 1.4054651081081644]
@@ -378,7 +380,7 @@ def pca(s, n_components=2):
 
     # Else: no Document Representation Series -> like before
     else:
-        s_dense_matrix = s
+        s_dense_matrix = list(s)
 
     s_out = pd.Series(
         pca.fit_transform(s_dense_matrix).tolist(), index=s.index.unique(level=0),
@@ -413,7 +415,7 @@ def nmf(s, n_components=2):
 
     # Else: no Document Representation Series -> like before
     else:
-        s_dense_matrix = s
+        s_dense_matrix = list(s)
 
     s_out = pd.Series(
         nmf.fit_transform(s_dense_matrix).tolist(), index=s.index.unique(level=0),
