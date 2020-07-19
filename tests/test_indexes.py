@@ -8,7 +8,7 @@ from parameterized import parameterized
 
 
 # Define valid inputs for different functions.
-s_text = pd.Series(["Test", "Test"], index=[5, 6])
+s_text = pd.Series(["Test", "Babel"], index=[5, 6])
 s_numeric = pd.Series([5.0], index=[5])
 s_numeric_lists = pd.Series([[5.0, 5.0], [6.0, 6.0]], index=[5, 6])
 
@@ -60,7 +60,7 @@ test_cases_representation = [
         representation.term_frequency,
         (preprocessing.tokenize(s_text),None,False,1,1.0,False,True),
     ],
-    ["tfidf", representation.tfidf, (preprocessing.tokenize(s_text),1,1.0,False,True)],
+    ["tfidf", representation.tfidf, (s_text,1,1.0,False,True)],
     ["pca", representation.pca, (s_numeric_lists, 0)],
     ["nmf", representation.nmf, (s_numeric_lists,)],
     ["tsne", representation.tsne, (s_numeric_lists,)],
