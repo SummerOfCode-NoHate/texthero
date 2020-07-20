@@ -102,20 +102,20 @@ In case you are an advanced python user, then `help(texthero)` should do the wor
 
 
 ```python
-import texthero as hero
-import pandas as pd
-
-df = pd.read_csv(
-   "https://github.com/jbesomi/texthero/raw/master/dataset/bbcsport.csv"
-)
-
-df['pca'] = (
-   df['text']
-   .pipe(hero.clean)
-   .pipe(hero.tfidf)
-   .pipe(hero.pca)
-)
-hero.scatterplot(df, 'pca', color='topic', title="PCA BBC Sport news")
+>>> import texthero as hero
+>>> import pandas as pd
+>>>
+>>> df = pd.read_csv(
+...   "https://github.com/jbesomi/texthero/raw/master/dataset/bbcsport.csv"
+... )
+>>>
+>>> df['pca'] = (
+...    df['text']
+...    .pipe(hero.clean)
+...    .pipe(hero.tfidf)
+...    .pipe(hero.pca)
+... )
+>>> hero.scatterplot(df, 'pca', color='topic', title="PCA BBC Sport news")
 ```
 
 <p align="center">
@@ -125,28 +125,28 @@ hero.scatterplot(df, 'pca', color='topic', title="PCA BBC Sport news")
 <h3>2. Text preprocessing, TF-IDF, K-means and Visualization</h3>
 
 ```python
-import texthero as hero
-import pandas as pd
+>>> import texthero as hero
+>>> import pandas as pd
+>>>
+>>> df = pd.read_csv(
+...     "https://github.com/jbesomi/texthero/raw/master/dataset/bbcsport.csv"
+... )
 
-df = pd.read_csv(
-    "https://github.com/jbesomi/texthero/raw/master/dataset/bbcsport.csv"
-)
-
-df['tfidf'] = (
-    df['text']
-    .pipe(hero.clean)
-    .pipe(hero.tfidf)
-)
-
-df['kmeans_labels'] = (
-    df['tfidf']
-    .pipe(hero.kmeans, n_clusters=5)
-    .astype(str)
-)
-
-df['pca'] = df['tfidf'].pipe(hero.pca)
-
-hero.scatterplot(df, 'pca', color='kmeans_labels', title="K-means BBC Sport news")
+>>> df['tfidf'] = (
+...     df['text']
+...     .pipe(hero.clean)
+...     .pipe(hero.tfidf)
+... )
+>>> 
+>>> df['kmeans_labels'] = (
+...     df['tfidf']
+...     .pipe(hero.kmeans, n_clusters=5)
+...     .astype(str)
+... )
+>>>
+>>> df['pca'] = df['tfidf'].pipe(hero.pca)
+>>>
+>>> hero.scatterplot(df, 'pca', color='kmeans_labels', title="K-means BBC Sport news")
 ```
 
 <p align="center">
@@ -217,7 +217,16 @@ Sometimes we also want to get rid of stop-words.
 ```python
 >>> s = hero.remove_stopwords(s)
 >>> s
-0    This sentence needs cleaned
+0    This sentence needs   cleaned
+dtype: object
+```
+
+There is also the option to clean the text automatically by calling the "clean"-function instead of doing it step by step.
+```python
+>>> text = "This sèntencé    (123 /) needs to [OK!] be cleaned!   "
+>>> s = pd.Series(text)
+>>> hero.clean(s)
+0    sentence needs cleaned
 dtype: object
 ```
 
