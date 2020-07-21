@@ -10,6 +10,7 @@ from sklearn.manifold import TSNE
 from sklearn.decomposition import PCA, NMF
 from sklearn.cluster import KMeans, DBSCAN, MeanShift
 from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.preprocessing import normalize as sklearn_normalize
 from scipy.sparse import coo_matrix
 
 from typing import Optional, Union, Any
@@ -93,6 +94,118 @@ _not_tokenized_warning_message = (
     " tokenize it automatically using hero.tokenize(s) first. You should consider"
     " tokenizing it yourself first with hero.tokenize(s) in the future."
 )
+
+
+def _check_is_valid_representation(s: pd.Series) -> bool:
+    """
+    Check if the given Pandas Series is a Document Representation Series.
+
+    Returns true if Series is Document Representation Series, else False.
+
+    """
+
+    # TODO: in Version 2 when only representation is accepted as input -> change "return False" to "raise ValueError"
+
+    if not isinstance(s.index, pd.MultiIndex):
+        return False
+        # raise ValueError(
+        #     f"The input Pandas Series should be a Representation Pandas Series and should have a MultiIndex. The given Pandas Series does not appears to have MultiIndex"
+        # )
+
+    if s.index.nlevels != 2:
+        return False
+        # raise ValueError(
+        #     f"The input Pandas Series should be a Representation Pandas Series and should have a MultiIndex, where the first level represent the document and the second one the words/token. The given Pandas Series has {s.index.nlevels} number of levels instead of 2."
+        # )
+
+    return True
+
+
+def normalize(s: pd.Series, norm="l2") -> pd.Series:
+    """
+    Normalize every cell in a Pandas Series.
+
+    Input can be either a "normal" Series or a (multi-indexed) Representation Series.
+    Output will be same type as input.
+
+    Parameters
+    ----------
+    s: Pandas Series
+
+    norm: str, default to "l2"
+        One of "l1", "l2", or "max".
+
+
+    Returns
+    -------
+    Pandas Series
+
+
+    Examples
+    --------
+    >>> import texthero as hero
+    >>> import pandas as pd
+    >>> s = pd.Series([[1, 1, 1, 3, 2], [1, 2, 3, 4, 5]])
+    >>> hero.normalize(s, norm="l2")  # doctest: +SKIP
+    0                        [0.25, 0.25, 0.25, 0.75, 0.5]
+    1    [0.13483997249264842, 0.26967994498529685, 0.4...
+
+    With a Representation Series:
+    >>> idx = pd.MultiIndex.from_tuples(
+    ...             [(0, "a"), (0, "b"), (0, "c")], names=("document", "word")
+    ...         )
+    >>> s = pd.Series([1, 2, 3], index=idx)
+    >>> hero.normalize(s, norm="max")
+    document  word
+    0         a       0.333333
+              b       0.666667
+              c       1.000000
+    dtype: Sparse[float64, nan]
+
+
+    See Also
+    --------
+    Representation Series link FIXME
+
+    `Norm on Wikipedia <https://en.wikipedia.org/wiki/Norm_(mathematics)>`_
+
+    """
+
+    is_valid_representation = _check_is_valid_representation(
+        s
+    )  # Need it more than once in the function.
+
+    if is_valid_representation:
+
+        if pd.api.types.is_sparse(s):
+            s_coo_matrix = s.sparse.to_coo()[0]
+            if s_coo_matrix.shape[1] > 1000:
+                warnings.warn(
+                    "Be careful. You are trying to compute PCA from a Sparse Pandas Series with a very large vocabulary. Principal Component Analysis normalize the data and this act requires to expand the input Sparse Matrix. This operation might take long. Consider using `svd_truncated` instead as it can deals with Sparse Matrix efficiently."
+                )
+        else:
+            # Treat it as a Sparse matrix anyway for efficiency.
+            s = s.astype("Sparse")
+            s_coo_matrix = s.sparse.to_coo()[0]
+
+        s_for_vectorization = s_coo_matrix.todense()
+
+    # Else: no Document Representation Series -> like before
+    else:
+        s_for_vectorization = list(s)
+
+    result = sklearn_normalize(s_for_vectorization, norm=norm)
+
+    if is_valid_representation:
+        # If we're here, result is already sparse, but in CSR format -> to COO for pandas.
+        result_coo = coo_matrix(result)
+        s_result = pd.Series.sparse.from_coo(result_coo)
+        s_result.index = s.index
+
+    else:
+        s_result = pd.Series(result.tolist(), index=s.index)
+
+    return s_result
 
 
 """
