@@ -127,74 +127,80 @@ Vectorization
 """
 
 
-def term_frequency(
+def count(
     s: pd.Series,
     max_features: Optional[int] = None,
-    return_feature_names=False,
     min_df=1,
     max_df=1.0,
     binary=False,
-    return_flat_series=False,
+    return_feature_names=False,
+    return_flat_series=False
 ) -> pd.Series:
     """
     Represent a text-based Pandas Series using count.
+
+    Return a Document Representation Series with the
+    number of occurences of a document's word for every
+    document. If return_flat_series is set to True,
+    return a Series with document vectors in every cell.
+    TODO add tutorial link
 
     The input Series should already be tokenized. If not, it will
     be tokenized before count is calculated.
 
     Parameters
     ----------
-    s : Pandas Series
+    s : Pandas Series (tokenized)
+
     max_features : int, optional, default to None.
         Maximum number of features to keep. Will keep all features if set to None.
-    return_features_names : Boolean, default to False.
-        If True, return a tuple (*term_frequency_series*, *features_names*).
-        Only applicable if return_flat_series is set to True.
-    max_df : float in range [0.0, 1.0] or int, default=1.0
-        Ignore terms that have a document frequency (number of documents they appear in)
-        frequency strictly higher than the given threshold.
-        If float, the parameter represents a proportion of documents, integer
-        absolute counts.
+
     min_df : float in range [0.0, 1.0] or int, default=1
         When building the vocabulary ignore terms that have a document
         frequency (number of documents they appear in) strictly 
         lower than the given threshold.
         If float, the parameter represents a proportion of documents, integer
         absolute counts.
+
+    max_df : float in range [0.0, 1.0] or int, default=1.0
+        Ignore terms that have a document frequency (number of documents they appear in)
+        frequency strictly higher than the given threshold.
+        If float, the parameter represents a proportion of documents, integer
+        absolute counts.
+
     binary : bool, default=False
         If True, all non zero counts are set to 1.
+
+    return_features_names : Boolean, False by Default
+        If True, return a tuple (*count_series*, *features_names*)
+
     return_flat_series : bool, default=False
         Whether to return a flat Series (document vectors in every cell) instead
         of a Document Representation Series. Will be less memory-efficient.
-        See also: TODO
-
-    Returns
-    -------
-    Pandas Series
 
     Examples
     --------
     >>> import texthero as hero
     >>> import pandas as pd
-    >>> s = pd.Series(["Sentence one", "Sentence two"])
-    >>> s = hero.tokenize(s)
-    >>> hero.term_frequency(s, return_flat_series=True)
-    document
-    0    [1, 1.0, 0.0]
-    1    [1, 0.0, 1.0]
+    >>> s = pd.Series(["Sentence one", "Sentence two"]).pipe(hero.tokenize)
+    >>> hero.count(s)
+    0    [1, 1, 0]
+    1    [1, 0, 1]
     dtype: object
-    
+
     To return the features_names:
-    
+
     >>> import texthero as hero
     >>> import pandas as pd
-    >>> s = pd.Series(["Sentence one", "Sentence two"])
-    >>> s = hero.tokenize(s)
-    >>> hero.term_frequency(s, return_feature_names=True, return_flat_series=True)
-    (document
-    0    [1, 1.0, 0.0]
-    1    [1, 0.0, 1.0]
+    >>> s = pd.Series(["Sentence one", "Sentence two"]).pipe(hero.tokenize)
+    >>> hero.count(s, return_feature_names=True)
+    (0    [1, 1, 0]
+    1    [1, 0, 1]
     dtype: object, ['Sentence', 'one', 'two'])
+
+    See Also
+    --------
+    Document Representation Series: TODO add tutorial link
 
     """
     # TODO. Can be rewritten without sklearn.
@@ -212,10 +218,119 @@ def term_frequency(
         max_df=max_df,
         binary=binary,
     )
-    tf_vectors_csr = tf.fit_transform(s)
 
+    tf_vectors_csr = tf.fit_transform(s)
     tf_vectors_coo = coo_matrix(tf_vectors_csr)
+
     s_out = pd.Series.sparse.from_coo(tf_vectors_coo)
+
+    features_names = tf.get_feature_names()
+
+    # Map word index to word name
+    s_out.index = s_out.index.map(lambda x: (
+        s.index[x[0]], features_names[x[1]]))
+
+    s_out.rename_axis(["document", "word"], inplace=True)
+
+    if return_flat_series:
+
+        s_out = representation_series_to_flat_series(
+            s_out, fill_missing_with=0.0, index=s.index
+        )
+
+        if return_feature_names:
+            return (s_out, tf.get_feature_names())
+
+    return s_out
+
+
+def term_frequency(
+    s: pd.Series,
+    max_features: Optional[int] = None,
+    min_df=1,
+    max_df=1.0,
+    return_feature_names=False,
+    return_flat_series=False,
+) -> pd.Series:
+    """
+    Represent a text-based Pandas Series using term frequency.
+
+    The input Series should already be tokenized. If not, it will
+    be tokenized before term_frequency is calculated.
+
+    Parameters
+    ----------
+    s : Pandas Series (tokenized)
+
+    max_features : int, optional, default to None.
+        Maximum number of features to keep. Will keep all features if set to None.
+
+    min_df : float in range [0.0, 1.0] or int, default=1
+        When building the vocabulary ignore terms that have a document
+        frequency (number of documents they appear in) strictly 
+        lower than the given threshold.
+        If float, the parameter represents a proportion of documents, integer
+        absolute counts.
+
+    max_df : float in range [0.0, 1.0] or int, default=1.0
+        Ignore terms that have a document frequency (number of documents they appear in)
+        frequency strictly higher than the given threshold.
+        If float, the parameter represents a proportion of documents, integer
+        absolute counts.
+
+    return_features_names : Boolean, False by Default
+        If True, return a tuple (*count_series*, *features_names*)
+        Only applicable if return_flat_series is set to True.
+
+    return_flat_series : bool, default=False
+        Whether to return a flat Series (document vectors in every cell) instead
+        of a Document Representation Series. Will be less memory-efficient.
+        See also: TODO
+
+
+    Examples
+    --------
+    >>> import texthero as hero
+    >>> import pandas as pd
+    >>> s = pd.Series(["Sentence one", "Sentence two"]).pipe(hero.tokenize)
+    >>> hero.term_frequency(s, return_flat_series=True)
+    document
+    0    [1, 1.0, 0.0]
+    1    [1, 0.0, 1.0]
+    dtype: object
+
+    To return the features_names:
+
+    >>> import texthero as hero
+    >>> import pandas as pd
+    >>> s = pd.Series(["Sentence one", "Sentence two"]).pipe(hero.tokenize)
+    >>> hero.term_frequency(s, return_feature_names=True, return_flat_series=True)
+    (document
+    0    [1, 1.0, 0.0]
+    1    [1, 0.0, 1.0]
+    dtype: object, ['Sentence', 'one', 'two'])
+
+    """
+    # Check if input is tokenized. Else, print warning and tokenize.
+    if not isinstance(s.iloc[0], list):
+        warnings.warn(_not_tokenized_warning_message, DeprecationWarning)
+        s = preprocessing.tokenize(s)
+
+    tf = CountVectorizer(
+        max_features=max_features,
+        tokenizer=lambda x: x,
+        preprocessor=lambda x: x,
+        min_df=min_df,
+        max_df=max_df,
+    )
+
+    tf_vectors_csr = tf.fit_transform(s)
+    tf_vectors_coo = coo_matrix(tf_vectors_csr)
+
+    total_count_coo = np.sum(cv_fit_transform)
+    frequency_coo = np.divide(cv_fit_transform, total_count)
+
+    s_out = pd.Series.sparse.from_coo(frequency_coo)
 
     features_names = tf.get_feature_names()
 
@@ -277,18 +392,6 @@ def tfidf(
 
     max_features : int, optional, default to None.
         If not None, only the max_features most frequent tokens are used.
-    min_df : int, optional, default to 1.
-        When building the vocabulary, ignore terms that have a document 
-        frequency (number of documents a term appears in) strictly lower than the given threshold.
-    max_df : int or double, optional, default to 1.0
-        When building the vocabulary, ignore terms that have a document
-        frequency (number of documents a term appears in) strictly higher than the given threshold. This arguments basically permits to remove corpus-specific stop words. When the argument is a float [0.0, 1.0], the parameter represents a proportion of documents.
-    return_feature_names: Boolean, optional, default to False
-        Whether to return the feature (i.e. word) names with the output.
-    return_flat_series : bool, default=False
-        Whether to return a flat Series (document vectors in every cell) instead
-        of a Document Representation Series. Will be less memory-efficient.
-        See also: TODO
 
     min_df : float in range [0.0, 1.0] or int, default=1
         When building the vocabulary ignore terms that have a document
@@ -304,16 +407,18 @@ def tfidf(
         If float, the parameter represents a proportion of documents, integer
         absolute counts.
 
-    return_features_names : Boolean, False by Default
-        If True, return a tuple (*count_series*, *features_names*)
+    return_feature_names: Boolean, optional, default to False
+        Whether to return the feature (i.e. word) names with the output.
 
+    return_flat_series : bool, default=False
+        Whether to return a flat Series (document vectors in every cell) instead
+        of a Document Representation Series. Will be less memory-efficient.
 
     Examples
     --------
     >>> import texthero as hero
     >>> import pandas as pd
-    >>> s = pd.Series(["Hi Bye", "Test Bye Bye"])
-    >>> s = hero.tokenize(s)
+    >>> s = pd.Series(["Hi Bye", "Test Bye Bye"]).pipe(hero.tokenize)
     >>> hero.tfidf(s, return_feature_names=True, return_flat_series=True)
     (document
     0    [1.0, 1.4054651081081644, 0.0]
@@ -367,8 +472,6 @@ def tfidf(
 
 """
 Dimensionality reduction
-
-TODO: truncated_svd
 """
 
 
@@ -435,7 +538,9 @@ def pca(s, n_components=2, random_state=None) -> pd.Series:
             s_coo_matrix = s.sparse.to_coo()[0]
             if s_coo_matrix.shape[1] > 1000:
                 warnings.warn(
-                    "Be careful. You are trying to compute PCA from a Sparse Pandas Series with a very large vocabulary. Principal Component Analysis normalize the data and this act requires to expand the input Sparse Matrix. This operation might take long. Consider using `svd_truncated` instead as it can deals with Sparse Matrix efficiently."
+                    "Be careful. You are trying to compute PCA from a Sparse Pandas Series with a very large vocabulary."
+                    " Principal Component Analysis normalize the data and this act requires to expand the input Sparse Matrix."
+                    " This operation might take long. Consider using `svd_truncated` instead as it can deals with Sparse Matrix efficiently."
                 )
         else:
             # Treat it as a Sparse matrix anyway for efficiency.
@@ -456,7 +561,7 @@ def pca(s, n_components=2, random_state=None) -> pd.Series:
     return s_out
 
 
-def nmf(s, n_components=2, random_state_arg=0):
+def nmf(s, n_components=2, random_state=None) -> pd.Series:
     """
     Performs non-negative matrix factorization.
 
