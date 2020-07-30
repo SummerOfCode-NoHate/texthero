@@ -180,13 +180,23 @@ def count(
 
     Examples
     --------
+    >>> import texthero as hero
+    >>> import pandas as pd
+    >>> s = pd.Series(["Sentence one", "Sentence two"]).pipe(hero.tokenize)
+    >>> hero.count(s)
+    document  word    
+    0         Sentence    1
+              one         1
+    1         Sentence    1
+              two         1
+    dtype: Sparse[int64, 0]
 
     With flat output:
 
     >>> import texthero as hero
     >>> import pandas as pd
     >>> s = pd.Series(["Sentence one", "Sentence two"]).pipe(hero.tokenize)
-    >>> hero.count(s)
+    >>> hero.count(s, return_flat_series=True)
     0    [1, 1, 0]
     1    [1, 0, 1]
     dtype: object
@@ -196,7 +206,7 @@ def count(
     >>> import texthero as hero
     >>> import pandas as pd
     >>> s = pd.Series(["Sentence one", "Sentence two"]).pipe(hero.tokenize)
-    >>> hero.count(s, return_feature_names=True)
+    >>> hero.count(s, return_flat_series=True, return_feature_names=True)
     (0    [1, 1, 0]
     1    [1, 0, 1]
     dtype: object, ['Sentence', 'one', 'two'])
@@ -204,7 +214,6 @@ def count(
     See Also
     --------
     Document Representation Series: TODO add tutorial link
-
     """
     # TODO. Can be rewritten without sklearn.
 
@@ -298,28 +307,41 @@ def term_frequency(
     --------
     >>> import texthero as hero
     >>> import pandas as pd
-    >>> s = pd.Series(["Sentence one", "Sentence two"]).pipe(hero.tokenize)
+    >>> s = pd.Series(["Sentence one hey", "Sentence two"]).pipe(hero.tokenize)
+    >>> hero.term_frequency(s)
+    document  word    
+    0         Sentence    0.2
+              hey         0.2
+              one         0.2
+    1         Sentence    0.2
+              two         0.2
+    dtype: Sparse[float64, nan]
+
+    With flat output:
+
+    >>> import texthero as hero
+    >>> import pandas as pd
+    >>> s = pd.Series(["Sentence one hey", "Sentence two"]).pipe(hero.tokenize)
     >>> hero.term_frequency(s, return_flat_series=True)
     document
-    0    [1, 1.0, 0.0]
-    1    [1, 0.0, 1.0]
+    0    [0.2, 0.2, 0.2, 0.0]
+    1    [0.2, 0.0, 0.0, 0.2]
     dtype: object
 
     To return the features_names:
 
     >>> import texthero as hero
     >>> import pandas as pd
-    >>> s = pd.Series(["Sentence one", "Sentence two"]).pipe(hero.tokenize)
+    >>> s = pd.Series(["Sentence one hey", "Sentence two"]).pipe(hero.tokenize)
     >>> hero.term_frequency(s, return_feature_names=True, return_flat_series=True)
     (document
-    0    [1, 1.0, 0.0]
-    1    [1, 0.0, 1.0]
+    0    [0.2, 0.2, 0.2, 0.0]
+    1    [0.2, 0.0, 0.0, 0.2]
     dtype: object, ['Sentence', 'one', 'two'])
 
     See Also
     --------
     Document Representation Series: TODO add tutorial link
-
     """
     # Check if input is tokenized. Else, print warning and tokenize.
     if not isinstance(s.iloc[0], list):
@@ -434,7 +456,20 @@ def tfidf(
     >>> import texthero as hero
     >>> import pandas as pd
     >>> s = pd.Series(["Hi Bye", "Test Bye Bye"]).pipe(hero.tokenize)
-    >>> hero.tfidf(s, return_feature_names=True, return_flat_series=True)
+    >>> hero.tfidf(s) # doctest: +SKIP
+    document  word
+    0         Bye     1.000000
+              Hi      1.405465
+    1         Bye     2.000000
+              Test    1.405465
+    dtype: Sparse[float64, nan]
+
+    With flat output:
+
+    >>> import texthero as hero
+    >>> import pandas as pd
+    >>> s = pd.Series(["Hi Bye", "Test Bye Bye"]).pipe(hero.tokenize)
+    >>> hero.tfidf(s, return_feature_names=True, return_flat_series=True) # doctest: +SKIP
     (document
     0    [1.0, 1.4054651081081644, 0.0]
     1    [2.0, 0.0, 1.4054651081081644]
@@ -445,8 +480,6 @@ def tfidf(
     `TF-IDF on Wikipedia <https://en.wikipedia.org/wiki/Tf-idf>`_
 
     Document Representation Series: TODO add tutorial link
-
-
     """
 
     # Check if input is tokenized. Else, print warning and tokenize.
@@ -512,6 +545,8 @@ def pca(s, n_components=2, random_state=None) -> pd.Series:
     get a good first view of the data!
 
     In general, *pca* should be called after the text has already been represented to a matrix form.
+
+    The input can either be a Document Representation Series or a flat Series.  TODO add tutorial link
 
     Parameters
     ----------
@@ -598,6 +633,7 @@ def nmf(s, n_components=2, random_state=None) -> pd.Series:
     and calculate a vector for each document that places it
     correctly among the topics.
 
+    The input can either be a Document Representation Series or a flat Series.  TODO add tutorial link
 
     Parameters
     ----------
@@ -688,6 +724,7 @@ def tsne(
     vector in such a way that the differences / similarities between
     documents are preserved.
 
+    The input can either be a Document Representation Series or a flat Series.  TODO add tutorial link
 
     Parameters
     ----------
@@ -816,6 +853,8 @@ def kmeans(
     to each word), K-means will find k topics (clusters)
     and assign a topic to each document.
 
+    The input can either be a Document Representation Series or a flat Series.  TODO add tutorial link
+
     Parameters
     ----------
     s: Pandas Series
@@ -928,6 +967,8 @@ def dbscan(
     or some other first representation function that assigns a scalar (a weight)
     to each word), DBSCAN will find topics (clusters)
     and assign a topic to each document.
+
+    The input can either be a Document Representation Series or a flat Series.  TODO add tutorial link
 
     Parameters
     ----------
@@ -1051,6 +1092,8 @@ def meanshift(
     to each word), mean shift will find topics (clusters)
     and assign a topic to each document.
 
+    The input can either be a Document Representation Series or a flat Series.  TODO add tutorial link
+    
     Parameters
     ----------
     s: Pandas Series
