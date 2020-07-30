@@ -197,8 +197,9 @@ def count(
     >>> import pandas as pd
     >>> s = pd.Series(["Sentence one", "Sentence two"]).pipe(hero.tokenize)
     >>> hero.count(s, return_flat_series=True)
-    0    [1, 1, 0]
-    1    [1, 0, 1]
+    document
+    0    [1, 1.0, 0.0]
+    1    [1, 0.0, 1.0]
     dtype: object
 
     To return the features_names:
@@ -207,8 +208,9 @@ def count(
     >>> import pandas as pd
     >>> s = pd.Series(["Sentence one", "Sentence two"]).pipe(hero.tokenize)
     >>> hero.count(s, return_flat_series=True, return_feature_names=True)
-    (0    [1, 1, 0]
-    1    [1, 0, 1]
+    (document
+    0    [1, 1.0, 0.0]
+    1    [1, 0.0, 1.0]
     dtype: object, ['Sentence', 'one', 'two'])
 
     See Also
@@ -337,7 +339,7 @@ def term_frequency(
     (document
     0    [0.2, 0.2, 0.2, 0.0]
     1    [0.2, 0.0, 0.0, 0.2]
-    dtype: object, ['Sentence', 'one', 'two'])
+    dtype: object, ['Sentence', 'hey', 'one', 'two'])
 
     See Also
     --------
@@ -778,7 +780,7 @@ def tsne(
     dtype: object
     >>> idx = pd.MultiIndex.from_tuples([(0, "a"), (1, "b"), (2, "c")], names=("document", "word"))
     >>> s = pd.Series([1, 1, 1], index=idx)
-    >>> hero.representation.tsne(s)
+    >>> hero.representation.tsne(s) # doctest: +SKIP
     0      [-43.62550354003906, 196.6477508544922]
     1       [180.7831268310547, 144.5662078857422]
     2    [23.474803924560547, -23.736543655395508]
@@ -1014,7 +1016,6 @@ def dbscan(
     >>> s = pd.Series(["Football, Sports, Soccer", "music, violin, orchestra", "football, fun, sports", "music, enjoy, guitar"])
     >>> s = s.pipe(hero.clean).pipe(hero.tokenize).pipe(hero.tfidf)
     >>> hero.dbscan(s, min_samples=1, eps=4)
-    document
     0    0
     1    1
     2    0

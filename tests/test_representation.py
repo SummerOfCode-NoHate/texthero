@@ -130,7 +130,7 @@ class TestRepresentation(PandasTestCase):
         s_true = pd.Series([[0.25, 0.25, 0.5]])
         s_true.rename_axis("document", inplace=True)
         self.assertEqual(
-            representation.tfidf(s, max_features=1, return_flat_series=True), s_true
+            representation.term_frequency(s, return_flat_series=True), s_true,
         )
 
     def test_term_frequency_multiple_documents(self):
@@ -186,14 +186,14 @@ class TestRepresentation(PandasTestCase):
     """
 
     def test_term_frequency_single_document_representation_series(self):
-        s = pd.Series([list("abbccc")])
+        s = pd.Series([list("abbcc")])
 
         idx = pd.MultiIndex.from_tuples(
             [(0, "a"), (0, "b"), (0, "c")], names=("document", "word")
         )
 
-        s_true = pd.Series([1, 2, 3], index=idx, dtype="int").astype(
-            pd.SparseDtype("int", 0)
+        s_true = pd.Series([0.2, 0.4, 0.4], index=idx, dtype="float").astype(
+            pd.SparseDtype("float", np.nan)
         )
         self.assertEqual(representation.term_frequency(s), s_true)
 
@@ -205,8 +205,8 @@ class TestRepresentation(PandasTestCase):
             [(0, "doc_one"), (1, "doc_two")], names=("document", "word")
         )
 
-        s_true = pd.Series([1, 1], index=idx, dtype="int").astype(
-            pd.SparseDtype("int", 0)
+        s_true = pd.Series([0.5, 0.5], index=idx, dtype="float").astype(
+            pd.SparseDtype("float", np.nan)
         )
         self.assertEqual(representation.term_frequency(s), s_true)
 
@@ -218,21 +218,21 @@ class TestRepresentation(PandasTestCase):
             [(0, "A"), (1, "a")], names=("document", "word")
         )
 
-        s_true = pd.Series([1, 1], index=idx, dtype="int").astype(
-            pd.SparseDtype("int", 0)
+        s_true = pd.Series([0.5, 0.5], index=idx, dtype="float").astype(
+            pd.SparseDtype("float", np.nan)
         )
         self.assertEqual(representation.term_frequency(s), s_true)
 
     def test_term_frequency_punctuation_are_kept_representation_series(self):
 
-        s = pd.Series([["number", "one", "!"]])
+        s = pd.Series([["number", "one", "!", "?"]])
 
         idx = pd.MultiIndex.from_tuples(
-            [(0, "!"), (0, "number"), (0, "one")], names=("document", "word")
+            [(0, "!"), (0, "?"), (0, "number"), (0, "one")], names=("document", "word")
         )
 
-        s_true = pd.Series([1, 1, 1], index=idx, dtype="int").astype(
-            pd.SparseDtype("int", 0)
+        s_true = pd.Series([0.25, 0.25, 0.25, 0.25], index=idx, dtype="float").astype(
+            pd.SparseDtype("float", np.nan)
         )
         self.assertEqual(representation.term_frequency(s), s_true)
 
