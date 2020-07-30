@@ -258,6 +258,12 @@ def term_frequency(
     """
     Represent a text-based Pandas Series using term frequency.
 
+    Return a Document Representation Series with the
+    term frequencies of the terms for every
+    document. If return_flat_series is set to True,
+    return a Series with document vectors in every cell.
+    TODO add tutorial link
+
     The input Series should already be tokenized. If not, it will
     be tokenized before term_frequency is calculated.
 
@@ -382,6 +388,11 @@ def tfidf(
     this function does *not* normalize the output in any way,
     so the result is exactly what you
     get applying the formula described above.
+
+    Return a Document Representation Series with the
+    tfidf of every word in the document. If return_flat_series is set to True,
+    return a Series with document vectors in every cell.
+    TODO add tutorial link
 
     The input Series should already be tokenized. If not, it will
     be tokenized before tfidf is calculated.
