@@ -294,8 +294,6 @@ def term_frequency(
     return_flat_series : bool, default=False
         Whether to return a flat Series (document vectors in every cell) instead
         of a Document Representation Series. Will be less memory-efficient.
-        See also: TODO
-
 
     Examples
     --------
@@ -318,6 +316,10 @@ def term_frequency(
     0    [1, 1.0, 0.0]
     1    [1, 0.0, 1.0]
     dtype: object, ['Sentence', 'one', 'two'])
+
+    See Also
+    --------
+    Document Representation Series: TODO add tutorial link
 
     """
     # Check if input is tokenized. Else, print warning and tokenize.
@@ -443,6 +445,9 @@ def tfidf(
     --------
     `TF-IDF on Wikipedia <https://en.wikipedia.org/wiki/Tf-idf>`_
 
+    Document Representation Series: TODO add tutorial link
+
+
     """
 
     # Check if input is tokenized. Else, print warning and tokenize.
@@ -543,6 +548,8 @@ def pca(s, n_components=2, random_state=None) -> pd.Series:
     --------
     `PCA on Wikipedia <https://en.wikipedia.org/wiki/Principal_component_analysis>`_
 
+    Document Representation Series: TODO add tutorial link
+
     """
     pca = PCA(n_components=n_components)
 
@@ -628,6 +635,8 @@ def nmf(s, n_components=2, random_state=None) -> pd.Series:
     See also
     --------
     `NMF on Wikipedia <https://en.wikipedia.org/wiki/Non-negative_matrix_factorization>`_
+
+    Document Representation Series: TODO add tutorial link
 
     """
     nmf = NMF(n_components=n_components, init=None, random_state=random_state)
@@ -735,6 +744,8 @@ def tsne(
     See also
     --------
     `t-SNE on Wikipedia <https://en.wikipedia.org/wiki/T-distributed_stochastic_neighbor_embedding>`_
+
+    Document Representation Series: TODO add tutorial link
 
     """
     tsne = TSNE(
@@ -846,6 +857,8 @@ def kmeans(
     See also
     --------
     `kmeans on Wikipedia <https://en.wikipedia.org/wiki/K-means_clustering>`_
+
+    Document Representation Series: TODO add tutorial link
 
     """
     if _check_is_valid_representation(s):
@@ -967,6 +980,8 @@ def dbscan(
     --------
     `DBSCAN on Wikipedia <https://en.wikipedia.org/wiki/DBSCAN>`_
 
+    Document Representation Series: TODO add tutorial link
+
     """
 
     if _check_is_valid_representation(s):
@@ -1085,6 +1100,8 @@ def meanshift(
     See also
     --------
     `Mean-Shift on Wikipedia <https://en.wikipedia.org/wiki/Mean_shift>`_
+
+    Document Representation Series: TODO add tutorial link
 
     """
 
