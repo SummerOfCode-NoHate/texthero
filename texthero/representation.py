@@ -180,6 +180,9 @@ def count(
 
     Examples
     --------
+
+    With flat output:
+
     >>> import texthero as hero
     >>> import pandas as pd
     >>> s = pd.Series(["Sentence one", "Sentence two"]).pipe(hero.tokenize)
@@ -327,8 +330,8 @@ def term_frequency(
     tf_vectors_csr = tf.fit_transform(s)
     tf_vectors_coo = coo_matrix(tf_vectors_csr)
 
-    total_count_coo = np.sum(cv_fit_transform)
-    frequency_coo = np.divide(cv_fit_transform, total_count)
+    total_count_coo = np.sum(tf_vectors_coo)
+    frequency_coo = np.divide(tf_vectors_coo, total_count_coo)
 
     s_out = pd.Series.sparse.from_coo(frequency_coo)
 
@@ -616,7 +619,7 @@ def nmf(s, n_components=2, random_state=None) -> pd.Series:
     `NMF on Wikipedia <https://en.wikipedia.org/wiki/Non-negative_matrix_factorization>`_
 
     """
-    nmf = NMF(n_components=n_components, init=None, random_state=random_state_arg)
+    nmf = NMF(n_components=n_components, init=None, random_state=random_state)
 
     if _check_is_valid_representation(s):
 
@@ -964,7 +967,7 @@ def dbscan(
             s = s.astype("Sparse")
             s_coo_matrix = s.sparse.to_coo()[0]
 
-        s_for_vectorization = s_csr_matrix  # dbscan can work on sparse.
+        s_for_vectorization = s_coo_matrix  # dbscan can work on sparse.
 
     # Else: no Document Representation Series -> like before
     else:
@@ -1087,7 +1090,7 @@ def meanshift(
             s = s.astype("Sparse")
             s_coo_matrix = s.sparse.to_coo()[0]
 
-        s_for_vectorization = s_csr_matrix.todense()
+        s_for_vectorization = s_coo_matrix.todense()
 
     # Else: no Document Representation Series -> like before
     else:
