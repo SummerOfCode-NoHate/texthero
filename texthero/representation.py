@@ -134,7 +134,7 @@ def count(
     max_df=1.0,
     binary=False,
     return_feature_names=False,
-    return_flat_series=False
+    return_flat_series=False,
 ) -> pd.Series:
     """
     Represent a text-based Pandas Series using count.
@@ -230,8 +230,7 @@ def count(
     features_names = tf.get_feature_names()
 
     # Map word index to word name
-    s_out.index = s_out.index.map(lambda x: (
-        s.index[x[0]], features_names[x[1]]))
+    s_out.index = s_out.index.map(lambda x: (s.index[x[0]], features_names[x[1]]))
 
     s_out.rename_axis(["document", "word"], inplace=True)
 
@@ -740,6 +739,13 @@ def tsne(
     1     [-210.60179138183594, 143.00535583496094]
     2    [-478.27984619140625, -232.97410583496094]
     dtype: object
+    >>> idx = pd.MultiIndex.from_tuples([(0, "a"), (1, "b"), (2, "c")], names=("document", "word"))
+    >>> s = pd.Series([1, 1, 1], index=idx)
+    >>> hero.representation.tsne(s)
+    0      [-43.62550354003906, 196.6477508544922]
+    1       [180.7831268310547, 144.5662078857422]
+    2    [23.474803924560547, -23.736543655395508]
+    dtype: object
 
     See also
     --------
@@ -772,7 +778,9 @@ def tsne(
     else:
         s_for_vectorization = list(s)
 
-    s_out = pd.Series(tsne.fit_transform(s_for_vectorization).tolist(), index=s.index)
+    s_out = pd.Series(
+        tsne.fit_transform(s_for_vectorization).tolist(), index=s.index.unique(level=0)
+    )
 
     s_out = s_out.rename_axis(None)
 
@@ -853,7 +861,7 @@ def kmeans(
     Categories (2, int64): [0, 1]
     >>> # As we can see, the documents are correctly
     >>> # separated into topics / clusters by the algorithm.
-
+    
     See also
     --------
     `kmeans on Wikipedia <https://en.wikipedia.org/wiki/K-means_clustering>`_
@@ -1008,7 +1016,7 @@ def dbscan(
             leaf_size=leaf_size,
             n_jobs=n_jobs,
         ).fit_predict(s_for_vectorization),
-        index=s.index,
+        index=s.index.unique(level=0),
     ).astype("category")
 
     s_out = s_out.rename_axis(None)
@@ -1096,6 +1104,14 @@ def meanshift(
     5    0
     dtype: category
     Categories (2, int64): [0, 1]
+    >>> idx = pd.MultiIndex.from_tuples([(0, "a"), (1, "b"), (2, "c")], names=("document", "word"))
+    >>> s = pd.Series([1, 1, 1], index=idx)
+    >>> hero.meanshift(s)
+    0    0
+    1    1
+    2    2
+    dtype: category
+    Categories (3, int64): [0, 1, 2]
 
     See also
     --------
@@ -1133,7 +1149,7 @@ def meanshift(
             n_jobs=n_jobs,
             max_iter=max_iter,
         ).fit_predict(s_for_vectorization),
-        index=s.index,
+        index=s.index.unique(level=0),
     ).astype("category")
     s_out = s_out.rename_axis(None)
 

@@ -32,9 +32,7 @@ class TestRepresentation(PandasTestCase):
         s_true = pd.Series([[1, 1, 2]])
         s_true.rename_axis("document", inplace=True)
 
-        self.assertEqual(
-            representation.count(s, return_flat_series=True), s_true
-        )
+        self.assertEqual(representation.count(s, return_flat_series=True), s_true)
 
     def test_count_multiple_documents(self):
         s = pd.Series(["doc_one", "doc_two"])
@@ -42,9 +40,7 @@ class TestRepresentation(PandasTestCase):
         s_true = pd.Series([[1, 0], [0, 1]])
         s_true.rename_axis("document", inplace=True)
 
-        self.assertEqual(
-            representation.count(s, return_flat_series=True), s_true
-        )
+        self.assertEqual(representation.count(s, return_flat_series=True), s_true)
 
     def test_count_not_lowercase(self):
         s = pd.Series(["one ONE"])
@@ -52,9 +48,7 @@ class TestRepresentation(PandasTestCase):
         s_true = pd.Series([[1, 1]])
         s_true.rename_axis("document", inplace=True)
 
-        self.assertEqual(
-            representation.count(s, return_flat_series=True), s_true
-        )
+        self.assertEqual(representation.count(s, return_flat_series=True), s_true)
 
     def test_count_punctuation_are_kept(self):
         s = pd.Series(["one !"])
@@ -62,9 +56,7 @@ class TestRepresentation(PandasTestCase):
         s_true = pd.Series([[1, 1]])
         s_true.rename_axis("document", inplace=True)
 
-        self.assertEqual(
-            representation.count(s, return_flat_series=True), s_true
-        )
+        self.assertEqual(representation.count(s, return_flat_series=True), s_true)
 
     def test_count_not_tokenized_yet(self):
         s = pd.Series("a b c c")
@@ -73,10 +65,7 @@ class TestRepresentation(PandasTestCase):
 
         with warnings.catch_warnings():  # avoid print warning
             warnings.simplefilter("ignore")
-            self.assertEqual(
-                representation.count(
-                    s, return_flat_series=True), s_true
-            )
+            self.assertEqual(representation.count(s, return_flat_series=True), s_true)
 
         with self.assertWarns(DeprecationWarning):  # check raise warning
             representation.count(s, return_flat_series=True)
@@ -103,16 +92,14 @@ class TestRepresentation(PandasTestCase):
             ]
         )
         s_true.rename_axis("document", inplace=True)
-        self.assertEqual(representation.tfidf(
-            s, return_flat_series=True), s_true)
+        self.assertEqual(representation.tfidf(s, return_flat_series=True), s_true)
 
     def test_tfidf_single_document(self):
         s = pd.Series("a", index=["yo"])
         s = preprocessing.tokenize(s)
         s_true = pd.Series([[1]], index=["yo"])
         s_true.rename_axis("document", inplace=True)
-        self.assertEqual(representation.tfidf(
-            s, return_flat_series=True), s_true)
+        self.assertEqual(representation.tfidf(s, return_flat_series=True), s_true)
 
     def test_tfidf_not_tokenized_yet(self):
         s = pd.Series("a")
@@ -121,8 +108,7 @@ class TestRepresentation(PandasTestCase):
 
         with warnings.catch_warnings():  # avoid print warning
             warnings.simplefilter("ignore")
-            self.assertEqual(representation.tfidf(
-                s, return_flat_series=True), s_true)
+            self.assertEqual(representation.tfidf(s, return_flat_series=True), s_true)
 
         with self.assertWarns(DeprecationWarning):  # check raise warning
             representation.tfidf(s, return_flat_series=True)
@@ -132,8 +118,7 @@ class TestRepresentation(PandasTestCase):
         s = preprocessing.tokenize(s)
         s_true = pd.Series([[1.0, 1.0]])
         s_true.rename_axis("document", inplace=True)
-        self.assertEqual(representation.tfidf(
-            s, return_flat_series=True), s_true)
+        self.assertEqual(representation.tfidf(s, return_flat_series=True), s_true)
 
     """
     Term Frequency
@@ -145,8 +130,7 @@ class TestRepresentation(PandasTestCase):
         s_true = pd.Series([[0.25, 0.25, 0.5]])
         s_true.rename_axis("document", inplace=True)
         self.assertEqual(
-            representation.tfidf(
-                s, max_features=1, return_flat_series=True), s_true
+            representation.tfidf(s, max_features=1, return_flat_series=True), s_true
         )
 
     def test_term_frequency_multiple_documents(self):
@@ -192,7 +176,6 @@ class TestRepresentation(PandasTestCase):
 
         with self.assertWarns(DeprecationWarning):  # check raise warning
             representation.term_frequency(s, return_flat_series=True)
-
 
     """
     Representation series testing
@@ -327,7 +310,7 @@ class TestRepresentation(PandasTestCase):
             [(0, "a"), (1, "b"), (2, "c")], names=("document", "word")
         )
         s = pd.Series([1, 1, 1], index=idx)
-        s = representation.nmf(s, random_state_arg=1)
+        s = representation.nmf(s, random_state=1)
 
         from sklearn.decomposition import NMF
 
