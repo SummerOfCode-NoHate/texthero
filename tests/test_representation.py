@@ -23,10 +23,10 @@ def load_tests(loader, tests, ignore):
 
 class TestRepresentation(PandasTestCase):
     """
-    Term Frequency.
+    Count.
     """
 
-    def test_term_frequency_single_document(self):
+    def test_count_single_document(self):
         s = pd.Series("a b c c")
         s = preprocessing.tokenize(s)
         s_true = pd.Series([[1, 1, 2]])
@@ -130,8 +130,12 @@ class TestRepresentation(PandasTestCase):
         s_true.rename_axis("document", inplace=True)
         self.assertEqual(representation.tfidf(s, return_flat_series=True), s_true)
 
-    def test_tfidf_max_features(self):
-        s = pd.Series("one one two")
+    """
+    Term Frequency
+    """
+
+    def test_term_frequency_single_document(self):
+        s = pd.Series("a b c c")
         s = preprocessing.tokenize(s)
         s_true = pd.Series([[2.0]])
         s_true.rename_axis("document", inplace=True)
