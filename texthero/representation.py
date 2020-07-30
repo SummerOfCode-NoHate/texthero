@@ -140,7 +140,7 @@ def count(
     Represent a text-based Pandas Series using count.
 
     Return a Document Representation Series with the
-    number of occurences of a document's word for every
+    number of occurences of a document's words for every
     document. If return_flat_series is set to True,
     return a Series with document vectors in every cell.
     TODO add tutorial link
@@ -330,7 +330,7 @@ def term_frequency(
     1    [0.2, 0.0, 0.0, 0.2]
     dtype: object
 
-    To return the features_names:
+    To return the features_names with the flat output:
 
     >>> import texthero as hero
     >>> import pandas as pd
@@ -409,7 +409,8 @@ def tfidf(
 
     Finally, tf-idf(document d, term t) = tf(d, t) * idf(t).
 
-    Different from the `sklearn-implementation of tfidf <https://scikit-learn.org/stable/modules/generated/sklearn.feature_extraction.text.TfidfVectorizer.html>`,
+    Different from the `sklearn-implementation of 
+    tfidf <https://scikit-learn.org/stable/modules/generated/sklearn.feature_extraction.text.TfidfVectorizer.html>`,
     this function does *not* normalize the output in any way,
     so the result is exactly what you
     get applying the formula described above.
@@ -548,7 +549,8 @@ def pca(s, n_components=2, random_state=None) -> pd.Series:
 
     In general, *pca* should be called after the text has already been represented to a matrix form.
 
-    The input can either be a Document Representation Series or a flat Series.  TODO add tutorial link
+    The input can either be a Document Representation Series or a flat Series.
+    TODO add tutorial link
 
     Parameters
     ----------
@@ -635,7 +637,8 @@ def nmf(s, n_components=2, random_state=None) -> pd.Series:
     and calculate a vector for each document that places it
     correctly among the topics.
 
-    The input can either be a Document Representation Series or a flat Series.  TODO add tutorial link
+    The input can either be a Document Representation Series or a flat Series.
+    TODO add tutorial link
 
     Parameters
     ----------
@@ -726,7 +729,8 @@ def tsne(
     vector in such a way that the differences / similarities between
     documents are preserved.
 
-    The input can either be a Document Representation Series or a flat Series.  TODO add tutorial link
+    The input can either be a Document Representation Series or a flat Series.
+    TODO add tutorial link
 
     Parameters
     ----------
@@ -777,13 +781,6 @@ def tsne(
     0      [-18.833383560180664, -276.800537109375]
     1     [-210.60179138183594, 143.00535583496094]
     2    [-478.27984619140625, -232.97410583496094]
-    dtype: object
-    >>> idx = pd.MultiIndex.from_tuples([(0, "a"), (1, "b"), (2, "c")], names=("document", "word"))
-    >>> s = pd.Series([1, 1, 1], index=idx)
-    >>> hero.representation.tsne(s) # doctest: +SKIP
-    0      [-43.62550354003906, 196.6477508544922]
-    1       [180.7831268310547, 144.5662078857422]
-    2    [23.474803924560547, -23.736543655395508]
     dtype: object
 
     See also
@@ -855,7 +852,8 @@ def kmeans(
     to each word), K-means will find k topics (clusters)
     and assign a topic to each document.
 
-    The input can either be a Document Representation Series or a flat Series.  TODO add tutorial link
+    The input can either be a Document Representation Series or a flat Series.
+    TODO add tutorial link
 
     Parameters
     ----------
@@ -970,7 +968,8 @@ def dbscan(
     to each word), DBSCAN will find topics (clusters)
     and assign a topic to each document.
 
-    The input can either be a Document Representation Series or a flat Series.  TODO add tutorial link
+    The input can either be a Document Representation Series or a flat Series.
+    TODO add tutorial link
 
     Parameters
     ----------
@@ -1093,8 +1092,9 @@ def meanshift(
     to each word), mean shift will find topics (clusters)
     and assign a topic to each document.
 
-    The input can either be a Document Representation Series or a flat Series.  TODO add tutorial link
-    
+    The input can either be a Document Representation Series or a flat Series.
+    TODO add tutorial link
+
     Parameters
     ----------
     s: Pandas Series
@@ -1204,4 +1204,4 @@ def meanshift(
 Topic modelling
 """
 
-# TODO.
+# TODO
