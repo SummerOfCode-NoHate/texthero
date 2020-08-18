@@ -176,6 +176,7 @@ to integrate the new VectorDF into functions see the bottom of
 this file):
 
 """
+
 import pandas as pd
 import numpy as np
 
@@ -308,7 +309,7 @@ Approach 1:
 
 Approach 2:
 
-    
+
 """
 
 
@@ -319,7 +320,7 @@ data = pd.read_csv(
 
 # data = pd.DataFrame(["Text one", "Text two"], columns=["text"])
 
-data_count = data["text"].pipe(count, max_features=300)
+data_count = data["text"].pipe(count)
 
 sparse_matrix, index, columns = data_count.sparse.to_coo()
 
@@ -331,3 +332,128 @@ print(x.sparse.density)
 
 
 data["count"] = x
+
+
+
+"""
+Current problem:
+
+See above.
+
+Now looking for some way to performantly
+store a matrix with many columns in a
+DataFrame. The actual problem seems to
+be the BlockManager, see
+https://uwekorn.com/2020/05/24/the-one-pandas-internal.html .
+
+Two things happen:
+
+- Pandas tries to consolidate columns of the same dtype
+  into "blocks", which requires copying data around.
+  If we now insert 5000 new columns, all the data has
+  to be copied instead of just referenced.
+
+- Weirdly, when doing
+  ```
+  >>> x = np.random.normal(size=(10000, 5000))
+  >>> df_x = pd.DataFrame(x)
+  >>> y = np.random.normal(size=(10000, 5000))
+  >>> df_y = pd.DataFrame(y, columns=np.arange(5000, 1000))
+
+  >>> df_x[df_y.columns] = df_y
+
+  ``` 
+  internally when looking at the blocks, pandas has one block
+  for the first 5k columns, and then _one block for each single
+  entry in the next 5k columns_, so 5k **blocks** (we can
+  see this by looking at `df_x._data`). This does _not_ happen
+  when working with `size=(10, 5)` above.
+
+  So our actual issue seems to be the block manager that is not
+  designed for a use case with thousands of columns and forces
+  pandas to copy data around.
+
+  We're investigating this.
+
+
+Investigation:
+
+    After our custom stuff, pd.DataFrame._setitem_array loops
+    through the new columns and calls pd.DataFrame.__setitem__
+    one by one. This calls pd.DataFrame._set_item for each
+    column. This
+
+        - calls pd.DataFrame._sanitize_column which copies values -> bad (?)
+        - calls _check_setitem_copy -> not bad (?)
+        - calls (in pd.core.generic) NDFrame._set_item to really place the
+          new column into the dataframe. This
+                - calls NDFrame._clear_item_cache which is O(1)
+
+                - calls (in pd.core.internals, 4208) _data.set(key, value) where `data` is the DF's BlockManager
+                    - bad (?)
+    Idea:
+        1. prevent copying
+        2. prevent consolidation
+
+"""
+
+#import pandas as pd
+#import numpy as np
+
+def f(x, y, y2):
+    a = np.random.normal(size=(x, y))
+    b = np.random.normal(size=(x, y2))
+    df_x = pd.DataFrame([["Test"] for _ in range(x)], columns=["text"])
+    df_a = pd.DataFrame(a, columns=pd.MultiIndex.from_product([["a"], np.arange(y).tolist()]))
+    df_b = pd.DataFrame(b, columns=pd.MultiIndex.from_product([["b"], np.arange(y2).tolist()]))
+
+    df_x["a"] = df_a
+    df_x["b"] = df_b
+    return df_x
+
+import time
+
+def g(x, y, z):
+    start = time.time()
+    a = f(x, y, z)
+    print(time.time() - start)
+    return a
+
+
+def h(x, y, y2):
+    a = np.random.normal(size=(x, y))
+    b = np.random.normal(size=(x, y2))
+    df_x = pd.DataFrame([["Test"] for _ in range(x)], columns=["text"])
+    df_a = pd.Series(a.tolist())
+    df_b = pd.Series(b.tolist())
+
+    df_x["a"] = df_a
+    df_x["b"] = df_b
+    return df_x
+
+
+def i(x, y, z):
+    start = time.time()
+    a = h(x, y, z)
+    print(time.time() - start)
+    return a
+
+
+# f(2, 1, 100)
+
+
+df = pd.DataFrame([1, 2])
+a = pd.Series(np.array([3, 4]))
+df["a"] = a
+
+"""
+Changes to sanitize_... and everything with >100
+    -> new dataframes/series that are inserted are now only referenced
+
+"""
+
+
+import cProfile
+
+cProfile.run('f(1, 1, 1)', sort=)
+
