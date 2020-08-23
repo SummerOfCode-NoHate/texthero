@@ -5,6 +5,10 @@ Useful helper functions for the texthero library.
 import pandas as pd
 import functools
 import warnings
+from typing import Callable
+from pandarallel import pandarallel
+
+pandarallel.initialize()
 
 
 """
@@ -71,3 +75,15 @@ def handle_nans(replace_nans_with):
         return wrapper
 
     return decorator
+
+
+def _hero_apply(s: pd.Series, func: Callable) -> pd.Series:
+    """
+    Uses parallel_apply from the pandarallel library 
+    (https://github.com/nalepae/pandarallel) when the input series has 
+    more than 10,000 rows. See PR #162 on GitHub.
+    """
+    if len(s) > 10000:
+        return s.parallel_apply(func)
+    else:
+        return s.apply(func)
