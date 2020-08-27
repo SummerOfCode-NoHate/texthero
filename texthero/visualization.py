@@ -2,11 +2,7 @@
 Visualize insights and statistics of a text-based Pandas DataFrame.
 """
 
-import pickle
-import subprocess
-import requests
 import os
-import pathlib
 import pandas as pd
 import numpy as np
 import plotly.express as px
@@ -17,6 +13,7 @@ from wordcloud import WordCloud
 from texthero import preprocessing
 from texthero._types import TextSeries, InputSeries
 from texthero.visualization_server import _display_df_notebook, _display_df_browser
+from texthero import visualization_server
 
 from matplotlib.colors import LinearSegmentedColormap as lsg
 import matplotlib.pyplot as plt
@@ -314,7 +311,7 @@ def top_words(s: TextSeries, normalize=False) -> pd.Series:
 
 
 def visualize_df(
-    df: pd.DataFrame, notebook=True, ip="127.0.0.1", port=8888,
+    df: pd.DataFrame, notebook=True, ip="127.0.0.1", port=8888, return_HTML=False
 ):
     """
     Visualize a Pandas DataFrame.
@@ -345,6 +342,10 @@ def visualize_df(
         a nearby open port will be found.
         Ignored when notebook is set to True.
 
+    return_HTML : bool, default to False
+        Whether to return the generated HTML
+        instead of visualizing it.
+
     Examples
     --------
     >>> import texthero as hero
@@ -353,6 +354,9 @@ def visualize_df(
     >>> hero.visualize_df(df) # doctest: +SKIP
 
     """
+
+    if return_HTML:
+        return visualization_server.data_to_html(df)
 
     if notebook:
         # Try to check whether the user is in a notebook.
