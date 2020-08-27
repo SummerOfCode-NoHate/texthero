@@ -72,7 +72,12 @@ def data_to_html(df):
 
     # Create JSON from DataFrame with correct classes/ID for visualization.
     df_json = json.dumps(
-        df.to_html(classes='table table-hover" id = "tableID', index=False, justify="left", border=0)
+        df.to_html(
+            classes='table table-hover" id = "tableID',
+            index=False,
+            justify="left",
+            border=0,
+        )
     )
 
     return template.render(df_json=df_json)
@@ -95,9 +100,7 @@ def _display_df_notebook(df):
 
 
 def _display_df_browser(
-    df,
-    ip="127.0.0.1",
-    port=8888,
+    df, ip="127.0.0.1", port=8888,
 ):
     """
     Display visualization of DataFrame `df`
@@ -121,7 +124,5 @@ def _display_df_browser(
     html = data_to_html(df)
 
     serve(
-        html,
-        ip=ip,
-        port=port,
+        html, ip=ip, port=port,
     )
