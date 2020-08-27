@@ -16,7 +16,8 @@ import json
 # General HTML template.  This should work correctly whether or not requirejs
 # is defined, and whether it's embedded in a notebook or in a standalone
 # HTML page.
-GENERAL_HTML = jinja2.Template(r"""
+GENERAL_HTML = jinja2.Template(
+    r"""
 <!DOCTYPE html>
 <html lang="en">
 
@@ -28,37 +29,27 @@ GENERAL_HTML = jinja2.Template(r"""
 <body>
     <div class="container">
         <div class="header">
-            <h3 class="text-muted">Create a pretty table</h3>
+            <h5 class="text-muted"></h3>
         </div>
 
         <div>
-            <p>Number of rows</p>
-            <input type="text" size="5" name="a" value="2">
-            <p>Number of columns</p>
-            <input type="text" size="5" name="b" value="4">
-
-            <p><a href="javascript:void();" id="calculate">get a pretty table</a></p>
-            <p>Result</p>
-            <p>Number of elements:</p>
-            <span id="elements">Hallo</span><br>
-            <div id="mytablediv">Here should be a table</div>
+            <div id="tablediv"></div>
         </div>
     </div>
     <script src="https://code.jquery.com/jquery-1.12.4.js" type="text/javascript"></script>
     <script src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js" type="text/javascript"></script>
     <script type="text/javascript">
         $(document).ready(function () {
-            var table = null;
-            $("#mytablediv").html({{ df_json }});
-            table = $("#a_nice_table").DataTable();
+            $("#tablediv").html({{ df_json }});
+            var table = $("#tableID").DataTable();
         });
 
     </script>
 </body>
 
 </html>
-""")
-
+"""
+)
 
 
 def prepared_data_to_html(df):
@@ -79,13 +70,10 @@ def prepared_data_to_html(df):
     template = GENERAL_HTML
 
     df_json = json.dumps(
-        df.to_html(
-            classes='table table-striped" id = "a_nice_table', index=False, border=0
-        ),
+        df.to_html(classes='table table-striped" id = "tableID', index=False, border=0),
     )
 
     return template.render(df_json=df_json)
-
 
 
 def display(data, local=False, **kwargs):
