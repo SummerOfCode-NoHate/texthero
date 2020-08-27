@@ -10,17 +10,19 @@ import pathlib
 import pandas as pd
 import numpy as np
 import plotly.express as px
+import warnings
 
 from wordcloud import WordCloud
 
 from texthero import preprocessing
 from texthero._types import TextSeries, InputSeries
-import string
+from texthero.visualization_server import _display_df_notebook, _display_df_browser
 
 from matplotlib.colors import LinearSegmentedColormap as lsg
 import matplotlib.pyplot as plt
 
 from collections import Counter
+import string
 
 
 def scatterplot(
@@ -311,22 +313,73 @@ def top_words(s: TextSeries, normalize=False) -> pd.Series:
     )
 
 
-def visualize_df(df, notebook=True):
+def visualize_df(
+    df: pd.DataFrame,
+    notebook=True,
+    ip="127.0.0.1",
+    port=8888,
+):
+    """
+    Visualize a Pandas DataFrame.
+
+    To embed the visualization inside
+    a Jupyter Notebook (e.g. Google Colab, Kaggle),
+    set `notebook=True` (default). To visualize
+    in a separate browser window, set it to
+    False.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        The DataFrame to visualize.
+
+    notebook : bool, default to True
+        Whether to visualize inside the
+        current Jupyter Notebook or in
+        a separate browser window.
+
+    ip : string, default = '127.0.0.1'
+        The ip address used for the local server.
+        Ignored when notebook is set to True.
+
+    port : int, default = 8888
+        The port number to use for the local server. 
+        If already in use,
+        a nearby open port will be found.
+        Ignored when notebook is set to True.
+
+    Examples
+    --------
+    >>> import texthero as hero
+    >>> import pandas as pd
+    >>> df = pd.read_csv("https://raw.githubusercontent.com/jbesomi/texthero/master/dataset/bbcsport.csv") # doctest: +SKIP
+    >>> hero.visualize_df(df) # doctest: +SKIP
+
+    """
+
     if notebook:
-        pass
-        # check if local or colab or kaggle
-        # show correctly
+        # Try to check whether the user is in a notebook.
+        # (Not a safe check.)
+        try:
+            __IPYTHON__
+        except:
+            warnings.warn(
+                "You do not appear do be inside"
+                " a Jupyter Notebook. Set"
+                " notebook=False to show the visualization."
+                " If you can already see the visualization, "
+                " ignore this warning.",
+                RuntimeWarning
+            )
+
+        _display_df_notebook(df)
+
     else:
-        path_of_texthero_directory = pathlib.Path(__file__).parent.absolute()
-        path_of_app_py_file = os.path.join(path_of_texthero_directory, "app.py")
-
-        data = pickle.dumps(df)
-        subprocess.Popen(["python3", path_of_app_py_file])
-
-        requests.post("http://127.0.0.1:5000/setDF", data=data)
-
-        # pd.to_pickle(df, "DATAFRAME.pkl")
-        # os.system("python3 {}".format(path_of_app_py_file))
+        _display_df_browser(
+            df,
+            ip=ip,
+            port=port,
+        )
 
 
 """Testing:

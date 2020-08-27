@@ -1,22 +1,24 @@
-# this file is largely based on https://github.com/jakevdp/mpld3/blob/master/mpld3/_display.py
-# Copyright (c) 2013, Jake Vanderplas
-# It was adapted for pyLDAvis by Ben Mabey
-import warnings
-import random
+"""
+Module to display our visualizations interactively
+inside a Notebook / Browser.
+
+This file is largely based on https://github.com/jakevdp/mpld3/blob/master/mpld3/_display.py
+Copyright (c) 2013, Jake Vanderplas.
+It was adapted for pyLDAvis by Ben Mabey.
+It was then adapted for Texthero.
+"""
+
 import json
 import jinja2
-import numpy
-import re
-import os
 from ._server import serve
-from .utils import get_id, write_ipynb_local_js, NumPyEncoder
-import json
 
 
-# General HTML template.  This should work correctly whether or not requirejs
-# is defined, and whether it's embedded in a notebook or in a standalone
-# HTML page.
-GENERAL_HTML = jinja2.Template(
+# Our HTML template. We use jinja2
+# to programmatically insert the
+# data we want to visualize
+# in the function data_to_html
+# below.
+HTML_TEMPLATE = jinja2.Template(
     r"""
 <!DOCTYPE html>
 <html lang="en">
@@ -52,102 +54,66 @@ GENERAL_HTML = jinja2.Template(
 )
 
 
-def prepared_data_to_html(df):
+def data_to_html(df):
     """
-    Output HTML with embedded visualization.
-
-    Parameters
-    ----------
-    data : PreparedData, created using :func:`prepare`
-        The data for the visualization.
-
-    Returns
-    -------
-    vis_html : string
-        the HTML visualization
+    Output HTML with embedded visualization
+    of the DataFrame df.
 
     """
-    template = GENERAL_HTML
+    template = HTML_TEMPLATE
 
+    # Create JSON from DataFrame with correct classes/ID for visualization.
     df_json = json.dumps(
-        df.to_html(classes='table table-hover" id = "tableID', index=False, border=0),
+        df.to_html(classes='table table-hover" id = "tableID', index=False, justify="left", border=0)
     )
 
     return template.render(df_json=df_json)
 
 
-def display(data, local=False, **kwargs):
-    """Display visualization in IPython notebook via the HTML display hook
+def _display_df_notebook(df):
+    """
+    Display visualization of DataFrame `df`
+    in IPython notebook via the HTML display hook.
 
-    Parameters
-    ----------
-    data : PreparedData, created using :func:`prepare`
-        The data for the visualization.
-    local : boolean (optional, default=False)
-        if True, then copy the d3 & mpld3 libraries to a location visible to
-        the notebook server, and source them from there. See Notes below.
-
-    Returns
-    -------
-    vis_d3 : IPython.display.HTML object
-        the IPython HTML rich display of the visualization.
-
-    Notes
-    -----
-    Known issues: using ``local=True`` may not work correctly in certain cases:
-
-    - In IPython < 2.0, ``local=True`` may fail if the current working
-      directory is changed within the notebook (e.g. with the %cd command).
-    - In IPython 2.0+, ``local=True`` may fail if a url prefix is added
-      (e.g. by setting NotebookApp.base_url).
+    Returns the IPython HTML rich display of the visualization.
 
     """
     # import here, in case users don't have requirements installed
     from IPython.display import HTML
 
-    return HTML(prepared_data_to_html(data))
+    html = data_to_html(df)
+
+    return HTML(html)
 
 
-def show(
-    data,
+def _display_df_browser(
+    df,
     ip="127.0.0.1",
     port=8888,
-    n_retries=50,
-    local=True,
-    open_browser=True,
-    http_server=None,
 ):
-    """Starts a local webserver and opens the visualization in a browser.
+    """
+    Display visualization of DataFrame `df`
+    in local browser.
 
     Parameters
     ----------
-    data : PreparedData, created using :func:`prepare`
-        The data for the visualization.
+    df : pd.DataFrame
+        The DataFrame to visualize.
+
     ip : string, default = '127.0.0.1'
-        the ip address used for the local server
+        The ip address used for the local server
+
     port : int, default = 8888
-        the port number to use for the local server.  If already in use,
-        a nearby open port will be found (see n_retries)
-    n_retries : int, default = 50
-        the maximum number of ports to try when locating an empty port.
-    local : bool, default = True
-        if True, use the local d3 & LDAvis javascript versions, within the
-        js/ folder.  If False, use the standard urls.
-    open_browser : bool (optional)
-        if True (default), then open a web browser to the given HTML
-    http_server : class (optional)
-        optionally specify an HTTPServer class to use for showing the
-        visualization. The default is Python's basic HTTPServer.
+        The port number to use for the local server. 
+        If already in use,
+        a nearby open port will be found.
 
     """
 
-    html = prepared_data_to_html(data)
+    html = data_to_html(df)
 
     serve(
         html,
         ip=ip,
         port=port,
-        n_retries=n_retries,
-        open_browser=open_browser,
-        http_server=http_server,
     )
