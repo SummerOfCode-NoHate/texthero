@@ -22,8 +22,8 @@ GENERAL_HTML = jinja2.Template(
 <html lang="en">
 
 <head>
-    <link href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.datatables.net/1.10.16/css/jquery.dataTables.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link href="https://cdn.datatables.net/1.10.21/css/jquery.dataTables.min.css" rel="stylesheet">
 </head>
 
 <body>
@@ -70,7 +70,7 @@ def prepared_data_to_html(df):
     template = GENERAL_HTML
 
     df_json = json.dumps(
-        df.to_html(classes='table table-striped" id = "tableID', index=False, border=0),
+        df.to_html(classes='table table-hover" id = "tableID', index=False, border=0),
     )
 
     return template.render(df_json=df_json)

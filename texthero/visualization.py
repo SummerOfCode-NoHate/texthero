@@ -328,6 +328,7 @@ def visualize_df(df, notebook=True):
         # pd.to_pickle(df, "DATAFRAME.pkl")
         # os.system("python3 {}".format(path_of_app_py_file))
 
+
 """Testing:
 import texthero as hero
 import pandas as pd
