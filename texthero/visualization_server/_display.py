@@ -91,7 +91,7 @@ def _display_df_notebook(df):
 
     html = data_to_html(df)
 
-    return HTML(html)
+    return IFrame(html)
 
 
 def _display_df_browser(
