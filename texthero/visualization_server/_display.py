@@ -87,7 +87,7 @@ def _display_df_notebook(df):
 
     """
     # import here, in case users don't have requirements installed
-    from IPython.display import HTML
+    from IPython.display import IFrame
 
     html = data_to_html(df)
 
