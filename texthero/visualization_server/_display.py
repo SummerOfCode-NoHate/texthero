@@ -87,7 +87,14 @@ def _display_df_notebook(df):
 
     """
     # import here, in case users don't have requirements installed
-    from IPython.display import HTML
+    try:
+        from IPython.display import HTML
+    except:
+        raise ValueError(
+            "You do not appear do be inside"
+            " a Jupyter Notebook. Set"
+            " notebook=False to show the visualization."
+        )
 
     html = data_to_html(df)
 
