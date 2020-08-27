@@ -22,7 +22,6 @@ HTML_TEMPLATE = jinja2.Template(
     r"""
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
     <link href="https://cdn.datatables.net/1.10.21/css/jquery.dataTables.min.css" rel="stylesheet">
@@ -38,12 +37,21 @@ HTML_TEMPLATE = jinja2.Template(
             <div id="tablediv"></div>
         </div>
     </div>
-    <script src="https://code.jquery.com/jquery-1.12.4.js" type="text/javascript"></script>
-    <script src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js" type="text/javascript"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.js" type="text/javascript"></script>
+    <script src="https://cdn.datatables.net/1.10.21/js/jquery.dataTables.min.js" type="text/javascript"></script>
+    <script src="https://cdn.datatables.net/plug-ins/1.10.21/dataRender/ellipsis.js" type="text/javascript"></script>
     <script type="text/javascript">
+        
+
+
         $(document).ready(function () {
             $("#tablediv").html({{ df_json }});
-            var table = $("#tableID").DataTable();
+            var table = $("#tableID").DataTable({
+                columnDefs: [ {
+                targets: 0,
+                render: $.fn.dataTable.render.ellipsis(260, true, true)
+    } ]
+            });
         });
 
     </script>
