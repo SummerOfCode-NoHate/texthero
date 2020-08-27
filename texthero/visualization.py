@@ -314,10 +314,7 @@ def top_words(s: TextSeries, normalize=False) -> pd.Series:
 
 
 def visualize_df(
-    df: pd.DataFrame,
-    notebook=True,
-    ip="127.0.0.1",
-    port=8888,
+    df: pd.DataFrame, notebook=True, ip="127.0.0.1", port=8888,
 ):
     """
     Visualize a Pandas DataFrame.
@@ -369,16 +366,14 @@ def visualize_df(
                 " notebook=False to show the visualization."
                 " If you can already see the visualization, "
                 " ignore this warning.",
-                RuntimeWarning
+                RuntimeWarning,
             )
 
         _display_df_notebook(df)
 
     else:
         _display_df_browser(
-            df,
-            ip=ip,
-            port=port,
+            df, ip=ip, port=port,
         )
 
 

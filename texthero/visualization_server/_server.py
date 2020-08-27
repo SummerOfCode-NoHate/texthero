@@ -15,6 +15,7 @@ def generate_handler(html):
     Generate handler that only
     serves our generated html.
     """
+
     class MyHandler(server.BaseHTTPRequestHandler):
         def do_GET(self):
             """Respond to a GET request."""
@@ -47,10 +48,7 @@ def find_open_port(ip, port, n=50):
 
 
 def serve(
-    html,
-    ip="127.0.0.1",
-    port=8888,
-    open_browser=True,
+    html, ip="127.0.0.1", port=8888, open_browser=True,
 ):
     """
     Start a server serving the given HTML, and (optionally) open a
