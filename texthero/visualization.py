@@ -2,6 +2,11 @@
 Visualize insights and statistics of a text-based Pandas DataFrame.
 """
 
+import pickle
+import subprocess
+import requests
+import os
+import pathlib
 import pandas as pd
 import numpy as np
 import plotly.express as px
@@ -304,3 +309,21 @@ def top_words(s: TextSeries, normalize=False) -> pd.Series:
         .explode()  # one word for each line
         .value_counts(normalize=normalize)
     )
+
+
+def visualize_df(df, notebook=True):
+    if notebook:
+        pass
+        # check if local or colab or kaggle
+        # show correctly
+    else:
+        path_of_texthero_directory = pathlib.Path(__file__).parent.absolute()
+        path_of_app_py_file = os.path.join(path_of_texthero_directory, "app.py")
+
+        data = pickle.dumps(df)
+        subprocess.Popen(["python3", path_of_app_py_file])
+
+        requests.post("http://127.0.0.1:5000/setDF", data=data)
+
+        # pd.to_pickle(df, "DATAFRAME.pkl")
+        # os.system("python3 {}".format(path_of_app_py_file))
