@@ -327,3 +327,12 @@ def visualize_df(df, notebook=True):
 
         # pd.to_pickle(df, "DATAFRAME.pkl")
         # os.system("python3 {}".format(path_of_app_py_file))
+
+"""Testing:
+import texthero as hero
+import pandas as pd
+df = pd.read_csv(
+    "https://raw.githubusercontent.com/jbesomi/texthero/master/dataset/bbcsport.csv"
+)
+hero.show(df)
+"""
