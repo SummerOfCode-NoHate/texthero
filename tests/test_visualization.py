@@ -81,11 +81,9 @@ class TestVisualization(PandasTestCase):
         self.assertEqual(visualization.wordcloud(s), None)
 
     """
-    Test visualize_df (obviously,
-    we need to manually test the function when
-    making changes).
+    Test show_dataframe.
     """
 
-    def test_visualize_df(self):
+    def test_show_dataframe(self):
         df = pd.DataFrame([["Test", 0.5], ["ja", 0.3]])
-        self.assertIsNotNone(visualization.visualize_df(df, return_HTML=True))
+        self.assertIsNotNone(visualization.show_dataframe(df, return_HTML=True))

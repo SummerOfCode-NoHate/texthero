@@ -310,7 +310,7 @@ def top_words(s: TextSeries, normalize=False) -> pd.Series:
     )
 
 
-def visualize_df(
+def show_dataframe(
     df: pd.DataFrame, notebook=True, ip="127.0.0.1", port=8888, return_HTML=False
 ):
     """
@@ -351,7 +351,7 @@ def visualize_df(
     >>> import texthero as hero
     >>> import pandas as pd
     >>> df = pd.read_csv("https://raw.githubusercontent.com/jbesomi/texthero/master/dataset/bbcsport.csv") # doctest: +SKIP
-    >>> hero.visualize_df(df) # doctest: +SKIP
+    >>> hero.show_dataframe(df) # doctest: +SKIP
 
     """
 
@@ -379,13 +379,3 @@ def visualize_df(
         _display_df_browser(
             df, ip=ip, port=port,
         )
-
-
-"""Testing:
-import texthero as hero
-import pandas as pd
-df = pd.read_csv(
-    "https://raw.githubusercontent.com/jbesomi/texthero/master/dataset/bbcsport.csv"
-)
-hero.show(df)
-"""
