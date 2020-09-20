@@ -191,32 +191,17 @@ def term_frequency(
     --------
     Document Term DataFrame: TODO add tutorial link
     """
-    # Check if input is tokenized. Else, print warning and tokenize.
-    if not isinstance(s.iloc[0], list):
-        warnings.warn(_not_tokenized_warning_message, DeprecationWarning)
-        s = preprocessing.tokenize(s)
-
-    tf = CountVectorizer(
-        max_features=max_features,
-        tokenizer=lambda x: x,
-        preprocessor=lambda x: x,
-        min_df=min_df,
-        max_df=max_df,
+    # Term frequency is just the word counts for each document
+    # with each document divided by the number of terms in the
+    # document. That's just l1 normalization!
+    s_term_frequency = s.pipe(
+        count, max_features=max_features, min_df=min_df, max_df=max_df
+    ).pipe(normalize, norm="l1")
+    # Rename first level of index from "count" to "term_frequency"
+    s_term_frequency.columns = pd.MultiIndex.from_product(
+        [["term_frequency"], s_term_frequency.columns.levels[1]]
     )
-
-    tf_vectors_csr = tf.fit_transform(s)
-    tf_vectors_coo = coo_matrix(tf_vectors_csr)
-
-    total_count_coo = np.sum(tf_vectors_coo)
-    frequency_coo = np.divide(tf_vectors_coo, total_count_coo)
-
-    multiindexed_columns = pd.MultiIndex.from_tuples(
-        [("term_frequency", word) for word in tf.get_feature_names()]
-    )
-
-    return pd.DataFrame.sparse.from_spmatrix(
-        frequency_coo, s.index, multiindexed_columns
-    )
+    return s_term_frequency
 
 
 def tfidf(s: pd.Series, max_features=None, min_df=1, max_df=1.0,) -> pd.DataFrame:
