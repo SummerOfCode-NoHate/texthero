@@ -959,3 +959,79 @@ def remove_hashtags(s: TextSeries) -> TextSeries:
         with a custom symbol.
     """
     return replace_hashtags(s, " ")
+
+
+@InputSeries(TokenSeries)
+def filter_extremes(
+    s: TokenSeries, max_words=None, min_df=1, max_df=1.0
+) -> TokenSeries:
+    """
+    Decrease the size of your documents by
+    filtering out words by their frequency.
+
+    It is often useful to reduce the size of your dataset
+    by dropping words in order to
+    reduce noise and improve performance.
+    This function removes all words/tokens from
+    all documents where the
+    document frequency (=number of documents a term appears in) is
+    -  below min_df
+    - above max_df.
+
+    When min_df or max_df is an integer, then document frequency
+    is the absolute number of documents that a term
+    appears in. When it's a float, it is the
+    proportion of documents a term appears in.
+
+    Additionally, only max_words many words are kept.
+
+    Parameters
+    ----------
+    max_words : int, default to None
+        The maximum number of words/tokens that
+        are kept, according to term frequency descending.
+        If None, will consider all features.
+
+    min_df : int or float, default to 1
+        Remove words that have a document frequency
+        lower than min_df. If float, it represents a
+        proportion of documents, integer absolute counts.
+
+    max_df : int or float, default to 1
+        Remove words that have a document frequency
+        higher than max_df. If float, it represents a
+        proportion of documents, integer absolute counts.
+
+    Example
+    -------
+    >>> import texthero as hero
+    >>> import pandas as pd
+    >>> s = pd.Series(
+    ...        [
+    ...         "Here one two one one one go there",
+    ...         "two go one one one two two two is important",
+    ...     ]
+    ... )
+    >>> s.pipe(hero.tokenize).pipe(hero.filter_extremes, 3)
+    0              [one, two, one, one, one, go]
+    1    [two, go, one, one, one, two, two, two]
+    dtype: object
+    """
+    # Use term_frequency to do the filtering
+    # for us (cannot do this faster as we
+    # need to build the document-term matrix
+    # anyway to filter by min_df and max_df).
+    s_term_frequency = representation.term_frequency(
+        s, max_features=max_words, min_df=min_df, max_df=max_df
+    )
+
+    # The remaining tokens are exactly the subcolumn names
+    # in the term_frequency DocumentTermDF.
+    tokens_to_keep = set(s_term_frequency.columns.levels[1])
+
+    # Go through documents and only keep tokens in tokens_to_keep.
+    # FIXME: Parallelize this after #162 is merged.
+    return s.apply(
+        lambda token_list: [
+            token for token in token_list if token in tokens_to_keep]
+    )
