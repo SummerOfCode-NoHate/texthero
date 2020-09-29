@@ -8,6 +8,7 @@ import string
 from typing import Optional, Set
 import unicodedata
 
+
 import numpy as np
 import pandas as pd
 import unidecode
@@ -15,7 +16,7 @@ from nltk.stem import PorterStemmer, SnowballStemmer
 
 from texthero import stopwords as _stopwords
 from texthero._types import TokenSeries, TextSeries, InputSeries
-from texthero import representation
+from texthero import representation, visualization
 
 from typing import List, Callable, Union
 
@@ -1037,7 +1038,7 @@ def filter_extremes(
             token for token in token_list if token in tokens_to_keep]
     )
 
-    @InputSeries(TextSeries)
+@InputSeries(TextSeries)
 def describe(s: TextSeries, s_labels: pd.Series = None) -> pd.DataFrame:
     """
     Describe a given pandas TextSeries (consisting of strings
