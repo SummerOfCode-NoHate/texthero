@@ -616,3 +616,72 @@ def visualize_describe(s: TextSeries, s_labels: pd.Series = None, return_figure=
     else:
         fig.show()
 
+def show_dataframe(
+    df: pd.DataFrame, notebook=True, ip="127.0.0.1", port=8888, return_HTML=False
+):
+    """
+    Visualize a Pandas DataFrame.
+
+    To embed the visualization inside
+    a Jupyter Notebook (e.g. Google Colab, Kaggle),
+    set `notebook=True` (default). To visualize
+    in a separate browser window, set it to
+    False.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        The DataFrame to visualize.
+
+    notebook : bool, default to True
+        Whether to visualize inside the
+        current Jupyter Notebook or in
+        a separate browser window.
+
+    ip : string, default = '127.0.0.1'
+        The ip address used for the local server.
+        Ignored when notebook is set to True.
+
+    port : int, default = 8888
+        The port number to use for the local server. 
+        If already in use,
+        a nearby open port will be found.
+        Ignored when notebook is set to True.
+
+    return_HTML : bool, default to False
+        Whether to return the generated HTML
+        instead of visualizing it.
+
+    Examples
+    --------
+    >>> import texthero as hero
+    >>> import pandas as pd
+    >>> df = pd.read_csv("https://raw.githubusercontent.com/jbesomi/texthero/master/dataset/bbcsport.csv") # doctest: +SKIP
+    >>> hero.show_dataframe(df) # doctest: +SKIP
+
+    """
+
+    if return_HTML:
+        return visualization_server.data_to_html(df)
+
+    if notebook:
+        # Try to check whether the user is in a notebook.
+        # (Not a safe check.)
+        try:
+            __IPYTHON__
+        except:
+            warnings.warn(
+                "You do not appear do be inside"
+                " a Jupyter Notebook. Set"
+                " notebook=False to show the visualization."
+                " If you can already see the visualization, "
+                " ignore this warning.",
+                RuntimeWarning,
+            )
+
+        _display_df_notebook(df)
+
+    else:
+        _display_df_browser(
+            df, ip=ip, port=port,
+        )
